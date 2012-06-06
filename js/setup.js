@@ -586,7 +586,7 @@ addEventListener( "DOMContentLoaded", function() {
     var i, l, f, d;
 
     var fontUsage = {},
-        fontUsers = root.querySelector( "[font-family] ");
+        fontUsers = root.querySelectorAll( "[font-family] ");
 
     for ( i = 0, l = fontUsers.length; i < l; ++i ) {
       var element = fontUsers[ i ],
