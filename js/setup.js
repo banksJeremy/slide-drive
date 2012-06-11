@@ -91,13 +91,7 @@ addEventListener( "DOMContentLoaded", function() {
       slideId: {
         enumerable: true,
         get: function() {
-          var slideId = _el.getAttribute( "id" );
-          if ( !slideId ) {
-            slideId = (_el.textContent.replace( /[^a-z0-9]/gi, '' ).substring( 0, 8 )
-                        .toLowerCase() || "s") + "-" + ( Math.random() * (1 << 30) | 0 ).toString( 36 );
-            _el.setAttribute( "id", slideId );
-          }
-          return slideId;
+          return getIdForEl( _el );
         }
       },
 
@@ -681,7 +675,25 @@ addEventListener( "DOMContentLoaded", function() {
         });
 
     $( svgSlideSubtrees ).removeClass( "Slide" ).addClass( "libreoffice-slide" );
-
+    
+    var possibleSubslides = getPossibleSubslides( root, function( el ) {
+      getIdForEl( el );
+    });
+    
+    (function recur( indentation, children ) {
+      // console.log( indentation + "(")
+      for (var i = 0; i < children.length; ++i) {
+        var child = children[ i ];
+        
+        if ( typeof child === "string" ) {
+          console.log( indentation + child );
+        } else {
+          recur( indentation + "- ", child.children );
+        }
+      }
+      // console.log( indentation + ")")
+    }( " ", possibleSubslides ));
+    
     var slides = document.querySelectorAll( ".deck-container .slide" );
 
     var cumulativeDuration = (slides[ slides.length - 1 ] && slides[ slides.length - 1 ].getAttribute( "data-popcorn-slideshow" ) || 0) + 3;
@@ -750,8 +762,63 @@ addEventListener( "DOMContentLoaded", function() {
       i++;
     }, 200);
   }
-
-
+  
+  function getPossibleSubslides( root, callback ) {
+    var rootChildren = [];
+    
+    var i, l, child, grandchildren;
+    
+    for ( i = 0, l = root.childNodes.length; i < l; ++i ) {
+      child = root.childNodes[ i ];
+      
+      if ( child.nodeName === "text" ) {
+        var textContent = child.textContent;
+        
+        if ( textContent.length > 0 ) {
+          callback( child );
+        
+          rootChildren.push({
+            el: child,
+            children: [ child.textContent ]
+          });
+        }
+      } else {
+        grandchildren = getPossibleSubslides( child, callback );
+        
+        if ( grandchildren.length > 1 ) {
+          callback( child );
+          
+          rootChildren.push({
+            el: child,
+            children: grandchildren
+          });
+        } else if ( grandchildren.length === 1 ) {
+          callback( child );
+          
+          rootChildren.push({
+            el: child,
+            children: grandchildren[ 0 ].children
+          });
+        }
+      }
+    }
+    
+    return rootChildren;
+  }
+  
+  // Returns the "id" attribute value for a given element.
+  // If the element does not have an "id" attribute defined, it is given a random one based on its text content.-
+  function getIdForEl( el ) {
+    if ( el.hasAttribute( "id" ) ) {
+      return el.getAttribute( "id" );
+    } else {
+      var id = (el.textContent.replace( /[^a-z0-9]/gi, '' ).substring( 0, 8 )
+                .toLowerCase() || "s") + "-" + ( Math.random() * (1 << 30) | 0 ).toString( 36 );
+      el.setAttribute( "id", id );
+      return id;
+    }
+  }
+  
   function initPrintable () {
     var body = document.getElementById( "printable" ),
         bodyChildren = document.getElementById( "main" ).getElementsByTagName( "section" );
