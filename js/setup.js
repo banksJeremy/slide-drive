@@ -299,12 +299,13 @@ addEventListener( "DOMContentLoaded", function() {
       // presentation to be reset to the first slide, so we preserve its state.
 
       var currentTime = popcorn.currentTime(),
-          currentSlide = SlideButterOptions( $.deck( "getSlide" )[0] );
+          currentSlide$ = $.deck( "getSlide" ),
+          currentSlideOptions = currentSlide$ && SlideButterOptions( currentSlide$[ 0 ] );
 
       $.deck( ".slide" );
 
-      if ( currentTime >= currentSlide.start && currentTime <= currentSlide.end ) {
-        $.deck( "go", currentSlide.slideId );
+      if ( currentSlide$ && currentTime >= currentSlideOptions.start && currentTime <= currentSlideOptions.end ) {
+        $.deck( "go", currentSlideOptions.slideId );
       } else {
         // A new slide might have been placed at the current time, we need to make
         // sure we jump back to into it to be sure it's activated.
