@@ -333,6 +333,11 @@ addEventListener( "DOMContentLoaded", function() {
           outerSlide = slide,
           parentSlides = $( slide ).parents( ".slide" );
       
+      var media = slide.querySelectorAll( ".synced-media" );
+      for ( var i = 0; i < media.length; ++i ) {
+        Popcorn(media[ i ]).play();
+      }
+      
       // Size should be based on height of the current master slide, not sub-slide.
       if (parentSlides.length) {
         outerSlide = parentSlides[ parentSlides.length - 1 ];
