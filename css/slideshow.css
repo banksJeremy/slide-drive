@@ -1,3 +1,7 @@
+body {
+  margin: 0 0 0 0;
+}
+
 .popcorn-slideshow {
   height: 98%;
   position: relative !important;
@@ -25,11 +29,39 @@
   font-family: monospace, sans-serif;
 }
 
+.project-container {
+  width: 100%;
+  height: 100%;
+}
+
+.deck-container {
+  position: absolute;
+  top: 0;
+  height: 80%;
+  left: 0;
+  right: 0;
+}
+
+.controls-and-transcript {
+  position: absolute;
+  width: 100%;
+  top: 80%;
+  height: 20%;
+}
+
 .popcorn-transcript {
-  border-radius: 5px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30px; /* .mejs-container's height */
+  bottom: 0;
   font-size: 2em;
   background-color: rgba(0,36,74, 0.4);
   overflow-y: auto;
+}
+
+.transcript {
+  display: none;
 }
 
 .printable-slide {

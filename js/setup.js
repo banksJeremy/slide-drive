@@ -284,7 +284,6 @@ addEventListener( "DOMContentLoaded", function() {
 
     initEvents();
     initTimelineTargets();
-    resizeTranscript();
 
     if ( anchorTargetId != null ) {
       $.deck( "go", anchorTargetId);
@@ -378,23 +377,31 @@ addEventListener( "DOMContentLoaded", function() {
       }, false);
     }
 
-    window.addEventListener( "resize", function ( e ) {
-      resizeTranscript();
-    } );
-
-    window.addEventListener( "load", function ( e ) {
-      resizeTranscript();
-    } );
-
     $(document).bind( "deck.change", function( event, from, to ) {
       if ( from === to ) {
         return;
       }
 
       var container = document.querySelector( ".deck-container" ),
-          slide = document.querySelectorAll( ".slide" )[ to ],
+          slides = document.querySelectorAll( ".slide" ),
+          slide = slides[ to ],
+          oldSlide = slides[ from ],
           outerSlide = slide,
-          parentSlides = $( slide ).parents( ".slide" );
+          parentSlides = $( slide ).parents( ".slide" ),
+          i, l;
+      
+      var oldMedia = oldSlide.querySelectorAll( ".synced-media" ),
+          newMedia = slide.querySelectorAll( ".synced-media" );
+
+      for ( i = 0, l = oldMedia.length; i < l; ++i ) {
+        Popcorn( oldMedia[ i ] ).pause();
+      }
+
+      for ( i = 0; i < newMedia.length; ++i ) {
+        var media = Popcorn( newMedia[ i ] );
+        media.currentTime( 0 );
+        media.play();
+      }
 
       // Size should be based on height of the current master slide, not sub-slide.
       if (parentSlides.length) {
@@ -416,12 +423,6 @@ addEventListener( "DOMContentLoaded", function() {
       }
     });
 
-  }
-
-  function resizeTranscript () {
-    var elem = document.getElementById( "slideshow-transcript" );
-    elem.style.height = (document.body.offsetHeight - elem.offsetTop - 3)   + "px";
-    elem.style.maxWidth = (document.body.offsetWidth)+ "px";
   }
 
   /* Verifies that the right type of files were dropped, otherwise displays an error.
@@ -868,7 +869,6 @@ addEventListener( "DOMContentLoaded", function() {
           transcript.innerHTML = innerTrans;
         }
       }
-
 
       slideContainer.appendChild( slide );
       slideContainer.appendChild( transcript );

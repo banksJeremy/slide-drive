@@ -24,28 +24,7 @@
        This contains the slideshow, media element, and transcript
        deck-container will override height set by deckjs to whatever you desire
   -->
-  
-  
-  
-  
-  <style>
-    .project-container {
-      width: 100%;
-      height: 100%;
-      border-style:solid;
-      border-width: 1px;
-      border-color: black;
-    }
-    .deck-container {
-      height: 80%;
-    }
-    
-    body {
-      margin: 0 0 0 0 !important;
-    }
-  </style>
-  
-  
+
 <link rel="stylesheet" href="/external/butter/css/butter.ui.css"><script src="/external/butter/external/popcorn-js/popcorn.js" type="text/javascript"></script><script src="/external/butter/external/popcorn-js/modules/player/popcorn.player.js" type="text/javascript"></script><script src="/js/custom-plugins/plugin.slidedrive.js"></script><link rel="stylesheet" href="external/deckjs/extensions/hash/deck.hash.css"></head><body class="project-container butter-header-spacing butter-tray-spacing" data-butter-crufted="">
   <div id="main" style="height:100%;width:100%;">
     <div class="deck-container on-slide-0">
@@ -2374,12 +2353,14 @@
  </g>
 </svg></section></div>
 
-    <audio id="audio" preload="auto" style="display:none;width:100%;" src="http://localhost:8888/media/pitch.ogg">
-      <source src="/media/pitch.ogg">
-      <source src="/media/pitch.mp3">
-    </audio>
+    <div class="controls-and-transcript">
+      <audio id="audio" preload="auto" style="display:none;width:100%;" src="http://localhost:8888/media/pitch.ogg">
+        <source src="/media/pitch.ogg">
+        <source src="/media/pitch.mp3">
+      </audio>
 
-    <div id="slideshow-transcript" class="popcorn-transcript" style="height: 205px; max-width: 1234px; padding: 5px; "></div>
+      <div id="slideshow-transcript" class="popcorn-transcript"></div>
+    </div>
 
     <!-- Grab CDN jQuery, with a protocol relative URL; fall back to local if offline -->
   </div>
