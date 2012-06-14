@@ -30,6 +30,7 @@
   font-size: 2em;
   background-color: rgba(0,36,74, 0.4);
   overflow-y: auto;
+  max-width: 100%;
 }
 
 .printable-slide {

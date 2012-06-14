@@ -260,7 +260,6 @@ addEventListener( "DOMContentLoaded", function() {
     
     initEvents();
     initTimelineTargets();
-    resizeTranscript();
     
     if ( anchorTargetId != null ) {
       $.deck( "go", anchorTargetId);
@@ -314,15 +313,7 @@ addEventListener( "DOMContentLoaded", function() {
         }
       }, false);
     }
-    
-    window.addEventListener( "resize", function ( e ) {
-      resizeTranscript();
-    } );
-    
-    window.addEventListener( "load", function ( e ) {
-      resizeTranscript();
-    } );
-    
+
     $(document).bind( "deck.change", function( event, from, to ) {
       if ( from === to ) {
         return;
@@ -355,13 +346,7 @@ addEventListener( "DOMContentLoaded", function() {
     });
     
   }
-  
-  function resizeTranscript () {
-    var elem = document.getElementById( "slideshow-transcript" );
-    elem.style.height = (document.body.offsetHeight - elem.offsetTop - 3)   + "px";
-    elem.style.maxWidth = (document.body.offsetWidth)+ "px";
-  }
-  
+
   /* Verifies that the right type of files were dropped, otherwise displays an error.
      If they have been then unbind the drop handlers, read the file and continue to handleDroppedSVG.
   */  
@@ -686,7 +671,6 @@ addEventListener( "DOMContentLoaded", function() {
         }
       }
 
-      
       slideContainer.appendChild( slide );
       slideContainer.appendChild( transcript );
       body.appendChild( slideContainer );
