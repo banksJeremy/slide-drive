@@ -320,15 +320,26 @@ addEventListener( "DOMContentLoaded", function() {
       }
 
       var container = document.querySelector( ".deck-container" ),
-          slide = document.querySelectorAll( ".slide" )[ to ],
+          slides = document.querySelectorAll( ".slide" ),
+          slide = slides[ to ],
+          oldSlide = slides[ from ],
           outerSlide = slide,
-          parentSlides = $( slide ).parents( ".slide" );
+          parentSlides = $( slide ).parents( ".slide" ),
+          i, l;
       
-      var media = slide.querySelectorAll( ".synced-media" );
-      for ( var i = 0; i < media.length; ++i ) {
-        Popcorn(media[ i ]).play();
+      var oldMedia = oldSlide.querySelectorAll( ".synced-media" ),
+          newMedia = slide.querySelectorAll( ".synced-media" );
+
+      for ( i = 0, l = oldMedia.length; i < l; ++i ) {
+        Popcorn( oldMedia[ i ] ).pause();
       }
-      
+
+      for ( i = 0; i < newMedia.length; ++i ) {
+        var media = Popcorn( newMedia[ i ] );
+        media.currentTime( 0 );
+        media.play();
+      }
+
       // Size should be based on height of the current master slide, not sub-slide.
       if (parentSlides.length) {
         outerSlide = parentSlides[ parentSlides.length - 1 ];
