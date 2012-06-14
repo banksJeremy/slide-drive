@@ -572,10 +572,25 @@ addEventListener( "DOMContentLoaded", function() {
   function handleDroppedSVG ( root, track, start ) {
     console.log( "Read SVG from file." );
 
-    // See #42
     var i, j, k,
         l, m, n;
 
+    // Required to work-around a Chrome bug caused by re-parsing the SVG element, see #66.
+    var imageEls = root.querySelectorAll( "image" );
+
+    for ( i = 0, l = imageEls.length; i < l; ++i ) {
+      var imageEl = imageEls[ i ];
+      console.log( "has href", imageEl.hasAttribute( "href" ) );
+      console.log( "has xlink:href", imageEl.hasAttribute( "xlink:href" ) );
+      console.log( "has NS href", imageEl.hasAttributeNS( "", "href" ) );
+      console.log( "has NS xlink:href", imageEl.hasAttributeNS( "xlink", "href" ) );
+      
+      var href = imageEl.getAttribute( "xlink:href" );
+      imageEl.removeAttribute( "xlink:href" );
+      imageEl.setAttribute( "xlink:href", href );
+    }
+
+    // Required for nice SVG text selection in Chrome, see #42.
     var textEls = [].slice.call( root.querySelectorAll( "text" ) );
 
     for ( i = 0, l = textEls.length; i < l; ++i ) {
