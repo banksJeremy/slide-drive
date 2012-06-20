@@ -572,17 +572,14 @@ addEventListener( "DOMContentLoaded", function() {
   function handleDroppedSVG ( root, track, start ) {
     console.log( "Read SVG from file." );
 
+    root = SVGContainer( root )
+          .joinAdjacentTextEls()
+          .fixXlinkAttrs()
+          .reparse()
+          .rootEl;
+
     var i, j, k,
         l, m, n;
-
-    fixXlinkAttributes( root ); // required or reparsing will break images
-
-    spanifyText( root );
-
-    root = reparseAndReplace( root ); // required or text changes won't work
-
-    fixXlinkAttributes( root ); // required or exporting will break images
-
 
     // Embedded fonts? Detach before cloning, then re-add to the first slide.
     var i, l, f, d;
@@ -698,9 +695,18 @@ addEventListener( "DOMContentLoaded", function() {
 
       slideEl.appendChild( transEl );
 
-      slideEl.appendChild( svgSlide );
+      var svgContainerEl = SVGContainer( svgSlide )
+        .fixTextSelection()
+        .fixXlinkAttrs()
+        .scaleTo( "height" )
+        .containerEl;
+
+      svgContainerEl.style.height = "100%";
+      
+      slideEl.appendChild( svgContainerEl );
 
       container.appendChild( slideEl );
+      
 
       track.addTrackEvent({
         type: "slidedrive",
@@ -714,105 +720,6 @@ addEventListener( "DOMContentLoaded", function() {
       i++;
     }, 200);
   }
-  
-  function reparseAndReplace( el ) {
-    // Converts an element to HTML and back, replacing the original element.
-    
-    // Convert SVG to source via a temporary div, then re-parse.
-    var tmpContainer = document.createElement( "div" ),
-        tmpSource;
-    el.parentNode.replaceChild( tmpContainer, el );
-    tmpContainer.appendChild( el );
-
-    tmpSource = tmpContainer.innerHTML;
-    tmpContainer.innerHTML = "";
-    tmpContainer.innerHTML = tmpSource;
-
-    var replacement = tmpContainer.firstChild;
-    tmpContainer.parentNode.replaceChild( replacement, tmpContainer );
-    
-    return replacement;
-  }
-  
-  function spanifyText( root ) {
-    var i, j, k, l, m, n;
-    
-    // Required for nice SVG text selection in Chrome, see #42.
-    var textEls = [].slice.call( root.querySelectorAll( "text" ) );
-
-    for ( i = 0, l = textEls.length; i < l; ++i ) {
-      var firstEl = textEls[ i ],
-          consecutiveEls = [ firstEl ],
-          latestEl = firstEl;
-
-      while ( i + 1 < l && latestEl.nextElementSibling === textEls[ i + 1 ] ) {
-        latestEl = textEls[ i + 1 ];
-        consecutiveEls.push( latestEl );
-
-        ++i;
-      }
-
-      if ( consecutiveEls.length > 1 ) {
-        var newContainer = document.createElement( "text" );
-
-        newContainer.setAttribute( "x", firstEl.getAttribute( "x" ) );
-        newContainer.setAttribute( "y", firstEl.getAttribute( "y" ) );
-
-        for ( j = 0, m = consecutiveEls.length; j < m; ++j ) {
-          var oldEl = consecutiveEls[ j ],
-              oldElAttributes = oldEl.attributes,
-              oldElChildren = [].slice.call( oldEl.childNodes ),
-              newEl = document.createElement( "tspan" );
-
-          newContainer.appendChild( newEl );
-
-          oldEl !== firstEl && oldEl.parentNode.removeChild( oldEl );
-
-          for ( k = 0, n = oldElAttributes.length; k < n; ++k ) {
-            var oldElAttr = oldElAttributes.item( k );
-            newEl.setAttribute( oldElAttr.nodeName, oldElAttr.nodeValue );
-          }
-
-          for ( k = 0, n = oldElChildren.length; k < n; ++k ) {
-            newEl.appendChild( oldElChildren[ k ] );
-          }
-        }
-
-        firstEl.parentNode.replaceChild( newContainer, firstEl );
-      }
-    }
-    
-    return root;
-  }
-  
-  var fixXlinkAttributes = (function(){
-    // Chrome doesn't include the xlink namespace prefix when converting our image
-    // elements to HTML. We need to convert it to a non-namespaced attribute named
-    // "xlink:href". If we're not in Chrome, define the function as a no-op. (#66)
-    
-    var tmp = document.createElement( "div" )
-    tmp.innerHTML = "<svg><image xlink:href=\"about:blank\"></image></svg>";
-    
-    if (/xlink:href/.test( tmp.innerHTML )) {
-      return function( root ) { return root; };
-    } else {
-      return function( root ) {
-        var images = root.querySelectorAll( "image" ), i, l, el;
-        
-        for( i = 0, l = images.length; i < l; i++ ) {
-          el = images[ i ];
-          
-          var href = el.getAttribute( "xlink:href" );
-          
-          el.removeAttribute( "xlink:href" );
-          el.setAttribute( "xlink:href", href );
-          el.setAttributeNS( "http://www.w3.org/1999/xlink", "href", href );
-        }
-        
-        return root;
-      };
-    }
-  }());
   
   function getPossibleSubslides( root, callback ) {
     var rootChildren = [];
