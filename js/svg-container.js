@@ -15,7 +15,7 @@ function SVGContainer( rootEl ) {
   this.rootEl = rootEl;
   
   if ( rootEl.parentNode && rootEl.parentNode.classList.contains( "SVGContainer" ) ) {
-    this.containerEl = this.parentNode;
+    this.containerEl = rootEl.parentNode;
   } else {
     this.containerEl = makeContainer( rootEl );
   }
@@ -35,6 +35,8 @@ function makeContainer( el ) {
 
   container.classList.add( "SVGContainer" );
   container.style.position = "relative";
+  container.style.background = "red";
+  el.style.background = "cyan";
 
   el.style.position = "absolute";
   el.style.top = 0;
@@ -54,6 +56,11 @@ function makeContainer( el ) {
   imageForScale.classList.add( "SVGContainer-scaler" );
   imageForScale.src = canvasForScale.toDataURL();
   imageForScale.style.width = "100%";
+  imageForScale.style.height = "auto";
+  imageForScale.style.maxHeight = "none";
+  imageForScale.style.minHeight = "none";
+  imageForScale.style.maxWidth = "none";
+  imageForScale.style.maxHeight = "none";
   imageForScale.style.display = "block";
 
   if ( parentNode ) {
@@ -112,12 +119,31 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
   // Values are represented as fractions of width/height.
 
   var bBoxes = [],
-      current = child;
+      current = child,
+      nativeBBox;
 
   while ( true ) {
-    bBoxes.push( current.getBBox() );
-
-    if ( current === this.rootEl ) {
+    nativeBBox = current.getBBox();
+    
+    if ( current !== this.rootEl ) {
+      bBoxes.push({
+        x: nativeBBox.x,
+        y: nativeBBox.y,
+        innerWidth: nativeBBox.width,
+        outerWidth: nativeBBox.width,
+        innerHeight: nativeBBox.height,
+        outerHeight: nativeBBox.height
+      });
+    } else {
+      bBoxes.push({
+        x: 0,
+        y: 0,
+        innerWidth: nativeBBox.width,
+        outerWidth: 1,
+        innerHeight: nativeBBox.height,
+        outerHeight: 1
+      });
+      
       break;
     }
 
@@ -130,24 +156,40 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
 
   bBoxes.reverse();
 
-  var i, l, currentBox,
+  console.log(bBoxes)
+
+  var i, l,
       totalBox = {
         x: 0,
         y: 0,
-        width: 1,
-        height: 1
+        outerWidth: 1,
+        innerWidth: 1,
+        outerHeight: 1,
+        innerHeight: 1
       };
 
   for ( i = 0, l = bBoxes.length; i < l; i++ ) {
     current = bBoxes[ i ];
 
-    totalBox.x += current.x * totalBox.width;
-    totalBox.x += current.y * totalBox.height;
-    totalBox.width *= current.width;
-    totalBox.height *= current.height;
+    totalBox.x += totalBox.outerWidth * current.x / totalBox.innerWidth;
+    totalBox.y += totalBox.outerHeight * current.y / totalBox.innerHeight;
+
+    // console.log(i, totalBox.outerWidth, current.outerWidth, totalBox.innerWidth)
+
+    totalBox.outerWidth *= current.outerWidth / totalBox.innerWidth;
+    totalBox.outerHeight *= current.outerHeight / totalBox.innerHeight;
+
+    totalBox.innerWidth = current.innerWidth;
+    totalBox.innerHeight = current.innerHeight;
+    
   }
 
-  return totalBox;
+  return {
+    x: totalBox.x,
+    y: totalBox.y,
+    width: totalBox.outerWidth,
+    height: totalBox.outerHeight
+  };
 };
 
 SVGContainer.prototype.joinAdjacentTextEls = function() {
@@ -234,11 +276,42 @@ SVGContainer.prototype.fixXlinkAttrs = function() {
 SVGContainer.prototype.fixTextSelection = function() {
   // SVG text isn't selectable in Firefox, so in Firefox we'll overlay
   // selectable invisible <span>s to handle it.
-  
+
+  /*
+    Hey, fool: tspan doesn't have a getBBox!
+  */
+
+  var i, l, e, selection = this.rootEl.querySelectorAll( "text" );
+  for ( i = 0, l = selection.length; i < l; ++i ) {
+    e = selection[ i ];
+
+    var bbox = this.getRelativeBBoxOf( e );
+    
+    if (bbox.width === 1 && bbox.height === 1 || bbox.width === 0 || bbox.height === 0) {
+      continue;
+    }
+
+    var marker = document.createElement("span");
+    marker.textContent = e.textContent;
+    marker.classList.add( "SVGContainer-selectable-text-overlay" );
+    marker.style.position = "absolute";
+    marker.style.top = bbox.y * 100 + "%";
+    marker.style.left = bbox.x * 100 + "%";
+    marker.style.width = bbox.width * 100 + "%";
+    marker.style.height = bbox.height * 100 + "%";
+    marker.style.background = "rgba(0,0,0,0.5)";
+    marker.style.cursor = "text";
+    marker.style.color = "white";
+    marker.style.overflow = "hidden";
+    marker.style.textAlign = "center";
+
+    this.containerEl.appendChild( marker );
+  }
+
   if ( !/Gecko[\/]/.test( navigator.userAgent ) ) {
     return this;
   }
-  
+
   /*
   
   Could you make the character's size 0, but use padding so the proper area is selectable?

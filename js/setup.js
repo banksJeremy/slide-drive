@@ -572,12 +572,6 @@ addEventListener( "DOMContentLoaded", function() {
   function handleDroppedSVG ( root, track, start ) {
     console.log( "Read SVG from file." );
 
-    root = SVGContainer( root )
-          .joinAdjacentTextEls()
-          .fixXlinkAttrs()
-          .reparse()
-          .rootEl;
-
     var i, j, k,
         l, m, n;
 
@@ -694,19 +688,23 @@ addEventListener( "DOMContentLoaded", function() {
       transEl.setAttribute( "class", "transcript" );
 
       slideEl.appendChild( transEl );
-
-      var svgContainerEl = SVGContainer( svgSlide )
-        .fixTextSelection()
-        .fixXlinkAttrs()
-        .scaleTo( "height" )
-        .containerEl;
-
-      svgContainerEl.style.height = "100%";
       
-      slideEl.appendChild( svgContainerEl );
+      slideEl.appendChild( svgSlide );
 
       container.appendChild( slideEl );
-      
+
+      // Need to do this after adding to document or fixTextSelection's
+      // will get confused about the geometry.
+      var svgContainerEl = SVGContainer( svgSlide )
+        .fixTextSelection()
+        // .joinAdjacentTextEls()
+        .fixXlinkAttrs()
+        .reparse()
+        .fixXlinkAttrs()
+        // .scaleTo( "height" )
+        .containerEl;
+
+      // svgContainerEl.style.height = "100%";
 
       track.addTrackEvent({
         type: "slidedrive",
