@@ -35,8 +35,6 @@ function makeContainer( el ) {
 
   container.classList.add( "SVGContainer" );
   container.style.position = "relative";
-  container.style.background = "red";
-  el.style.background = "cyan";
 
   el.style.position = "absolute";
   el.style.top = 0;
@@ -88,6 +86,42 @@ SVGContainer.prototype.scaleTo = function( measure ) {
   
   return this;
 }
+
+SVGContainer.prototype.padTextViewports = function() {
+  // We rely on elements' .getBBox() to determine the location and dimension of elements, but
+  // if the element doesn't fill its available space the results won't be accurate. This method
+  // creates an invisible rect to fill the dimensions of each element that is a .viewportElement
+  // (directly on indirectly) of any <text> element.
+  
+  var viewPorts = [];
+  
+  var i, l, e, selection = this.rootEl.querySelectorAll( "text" ), parentView;
+  for ( i = 0, l = selection.length; i < l; ++i ) {
+    for ( parentView = selection[ i ].viewportElement; parentView; parentView = parentView.viewportElement ) {
+      if ( viewPorts.indexOf( parentView ) === -1 ) {
+        viewPorts.push( parentView );
+      }
+    }
+  }
+  
+  for ( i = 0, l = viewPorts.length; i < l; ++i ) {
+    e = viewPorts[ i ]
+    
+    if ( !e.querySelector( ".SVGContainer-bbox-fill" ) ) {
+      var filler = document.createElement( "rect" );
+      filler.setAttribute( "class", "SVGContainer-bbox-fill" );
+      filler.setAttribute( "x", 0 );
+      filler.setAttribute( "y", 0 );
+      filler.setAttribute( "width", "100%" );
+      filler.setAttribute( "height", "100%" );
+      filler.setAttribute( "fill", "none" );
+      filler.setAttribute( "stroke", "none" );
+      e.appendChild( filler );
+    }
+  }
+  
+  return this;
+};
 
 SVGContainer.prototype.reparse = function() {
   this.rootEl = reparseAndReplace( this.rootEl );
@@ -156,8 +190,6 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
 
   bBoxes.reverse();
 
-  console.log(bBoxes)
-
   var i, l,
       totalBox = {
         x: 0,
@@ -174,14 +206,11 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
     totalBox.x += totalBox.outerWidth * current.x / totalBox.innerWidth;
     totalBox.y += totalBox.outerHeight * current.y / totalBox.innerHeight;
 
-    // console.log(i, totalBox.outerWidth, current.outerWidth, totalBox.innerWidth)
-
     totalBox.outerWidth *= current.outerWidth / totalBox.innerWidth;
     totalBox.outerHeight *= current.outerHeight / totalBox.innerHeight;
 
     totalBox.innerWidth = current.innerWidth;
     totalBox.innerHeight = current.innerHeight;
-    
   }
 
   return {
@@ -280,7 +309,10 @@ SVGContainer.prototype.fixTextSelection = function() {
   /*
     Hey, fool: tspan doesn't have a getBBox!
   */
-
+  
+  var markerContainer = document.createElement( "div" );
+  markerContainer.classList.add( "SVGContainer-selectable-text-container" );
+  
   var i, l, e, selection = this.rootEl.querySelectorAll( "text" );
   for ( i = 0, l = selection.length; i < l; ++i ) {
     e = selection[ i ];
@@ -299,42 +331,22 @@ SVGContainer.prototype.fixTextSelection = function() {
     marker.style.left = bbox.x * 100 + "%";
     marker.style.width = bbox.width * 100 + "%";
     marker.style.height = bbox.height * 100 + "%";
-    marker.style.background = "rgba(0,0,0,0.5)";
     marker.style.cursor = "text";
-    marker.style.color = "white";
     marker.style.overflow = "hidden";
     marker.style.textAlign = "center";
+    
+    marker.style.background = "rgba(255,255,0,0.25)";
+    marker.style.color = "rgba(0,0,0,0.5)";
 
-    this.containerEl.appendChild( marker );
+    markerContainer.appendChild( marker );
   }
+  
+  this.containerEl.appendChild( markerContainer );
 
   if ( !/Gecko[\/]/.test( navigator.userAgent ) ) {
     return this;
   }
-
-  /*
   
-  Could you make the character's size 0, but use padding so the proper area is selectable?
-    Yes, just be sure to set cursor: text. also, specify the size in pixels or the browser
-    will object. and it won't actuall _appear_ selected. Maybe some clever CSS could fix it.
-  
-  Is there any way to use an arbitrary size without breaking things like that?
-    Use an oversized character cliped by overflow?
-      Seems to work in Chrome.
-        Unfortunately, the selection is invisible if the character is.
-        Using padding to shove the character out of the visible area has same issue.
-        Maybe we could do something clever with ::selection? Probably not.
-  
-  the "select" and "selectstart" events exist!
-    No "selectend", but listening for a select event on the window might cover that.
-    
-  for more advanced cases:
-    Could use use CSS3 transformations to get the text exactly where you want, and
-    replace the SVG text with native text?
-  
-  */
-  
-  console.warn( "Fixing text selection not implemented." );
   return this;
 }
 
