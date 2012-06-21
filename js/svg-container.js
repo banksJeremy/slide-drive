@@ -13,7 +13,7 @@ function SVGContainer( rootEl ) {
   }
 
   this.rootEl = rootEl;
-  
+
   if ( rootEl.parentNode && rootEl.parentNode.classList.contains( "SVGContainer" ) ) {
     this.containerEl = rootEl.parentNode;
   } else {
@@ -73,7 +73,7 @@ function makeContainer( el ) {
 
 SVGContainer.prototype.scaleTo = function( measure ) {
   var scaler = this.containerEl.querySelector( ".SVGContainer-scaler" );
-  
+
   if ( measure === "width" ) {
     scaler.style.height = "auto";
     scaler.style.width = "100%";
@@ -83,7 +83,7 @@ SVGContainer.prototype.scaleTo = function( measure ) {
   } else {
     throw new Error( "scaleTo option must be \"height\" or \"width\"." )
   }
-  
+
   return this;
 }
 
@@ -92,9 +92,9 @@ SVGContainer.prototype.padTextViewports = function() {
   // if the element doesn't fill its available space the results won't be accurate. This method
   // creates an invisible rect to fill the dimensions of each element that is a .viewportElement
   // (directly on indirectly) of any <text> element.
-  
+
   var viewPorts = [];
-  
+
   var i, l, e, selection = this.rootEl.querySelectorAll( "text" ), parentView;
   for ( i = 0, l = selection.length; i < l; ++i ) {
     for ( parentView = selection[ i ].viewportElement; parentView; parentView = parentView.viewportElement ) {
@@ -103,10 +103,10 @@ SVGContainer.prototype.padTextViewports = function() {
       }
     }
   }
-  
+
   for ( i = 0, l = viewPorts.length; i < l; ++i ) {
     e = viewPorts[ i ]
-    
+
     if ( !e.querySelector( ".SVGContainer-bbox-fill" ) ) {
       var filler = document.createElement( "rect" );
       filler.setAttribute( "class", "SVGContainer-bbox-fill" );
@@ -119,7 +119,7 @@ SVGContainer.prototype.padTextViewports = function() {
       e.appendChild( filler );
     }
   }
-  
+
   return this;
 };
 
@@ -130,11 +130,11 @@ SVGContainer.prototype.reparse = function() {
 
 function reparseAndReplace( el ) {
   // Converts an element to HTML and back, replacing its former self in the DOM.
-  
+
   var tmpContainer = document.createElement( "div" ),
       tmpSource,
       parent = el.parentNode
-  
+
   parent && parent.replaceChild( tmpContainer, el );
   tmpContainer.appendChild( el );
 
@@ -144,7 +144,7 @@ function reparseAndReplace( el ) {
 
   var replacement = tmpContainer.firstChild;
   parent && tmpContainer.parentNode.replaceChild( replacement, tmpContainer );
-  
+
   return replacement;
 };
 
@@ -157,8 +157,8 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
       nativeBBox;
 
   while ( true ) {
-    nativeBBox = current.getBBox();
-    
+    nativeBBox = (current.querySelector( ".SVGContainer-bbox-fill" ) || current).getBBox();
+
     if ( current !== this.rootEl ) {
       bBoxes.push({
         x: nativeBBox.x,
@@ -177,7 +177,7 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
         innerHeight: nativeBBox.height,
         outerHeight: 1
       });
-      
+
       break;
     }
 
@@ -202,7 +202,7 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
 
   for ( i = 0, l = bBoxes.length; i < l; i++ ) {
     current = bBoxes[ i ];
-
+    console.log(current)
     totalBox.x += totalBox.outerWidth * current.x / totalBox.innerWidth;
     totalBox.y += totalBox.outerHeight * current.y / totalBox.innerHeight;
 
@@ -270,7 +270,7 @@ SVGContainer.prototype.joinAdjacentTextEls = function() {
       firstEl.parentNode.replaceChild( newContainer, firstEl );
     }
   }
-  
+
   return this;
 }
 
@@ -284,7 +284,7 @@ SVGContainer.prototype.fixXlinkAttrs = function() {
   // TODO: Currently only looks at <images>; this should be made more general.
 
   if ( !xlinkAttrsNeedFixing ) {
-    return;
+    return this;
   }
 
   var images = this.rootEl.querySelectorAll( "image" ), i, l, el;
@@ -309,44 +309,42 @@ SVGContainer.prototype.fixTextSelection = function() {
   /*
     Hey, fool: tspan doesn't have a getBBox!
   */
-  
+
+  if ( !/Gecko[\/]/.test( navigator.userAgent ) ) {
+    return this;
+  }
+
   var markerContainer = document.createElement( "div" );
   markerContainer.classList.add( "SVGContainer-selectable-text-container" );
-  
+
   var i, l, e, selection = this.rootEl.querySelectorAll( "text" );
   for ( i = 0, l = selection.length; i < l; ++i ) {
     e = selection[ i ];
 
     var bbox = this.getRelativeBBoxOf( e );
-    
-    if (bbox.width === 1 && bbox.height === 1 || bbox.width === 0 || bbox.height === 0) {
-      continue;
-    }
 
     var marker = document.createElement("span");
     marker.textContent = e.textContent;
+
     marker.classList.add( "SVGContainer-selectable-text-overlay" );
     marker.style.position = "absolute";
     marker.style.top = bbox.y * 100 + "%";
     marker.style.left = bbox.x * 100 + "%";
-    marker.style.width = bbox.width * 100 + "%";
-    marker.style.height = bbox.height * 100 + "%";
+    marker.style.width = bbox.width ? (bbox.width * 100 + "%") : "1px";
+    marker.style.height = bbox.height ? (bbox.height * 100 + "%") : "1px";
     marker.style.cursor = "text";
     marker.style.overflow = "hidden";
     marker.style.textAlign = "center";
-    
-    marker.style.background = "rgba(255,255,0,0.25)";
-    marker.style.color = "rgba(0,0,0,0.5)";
+    marker.style.whiteSpace = "pre";
+
+    // marker.style.background = "rgba(255,255,0,0.25)";
+    marker.style.color = "rgba(0,0,0,0.0)";
 
     markerContainer.appendChild( marker );
   }
-  
+
   this.containerEl.appendChild( markerContainer );
 
-  if ( !/Gecko[\/]/.test( navigator.userAgent ) ) {
-    return this;
-  }
-  
   return this;
 }
 

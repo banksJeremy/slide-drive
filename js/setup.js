@@ -696,11 +696,9 @@ addEventListener( "DOMContentLoaded", function() {
       // Need to do this after adding to document or fixTextSelection's
       // will get confused about the geometry.
       var svgContainerEl = SVGContainer( svgSlide )
-        .fixTextSelection()
-        // .joinAdjacentTextEls()
-        .fixXlinkAttrs()
-        .reparse()
-        .fixXlinkAttrs()
+        .padTextViewports().fixXlinkAttrs().reparse().fixTextSelection() // fix text selection in Firefox
+        .joinAdjacentTextEls().fixXlinkAttrs().reparse() // fix text selection in Chrome
+        .fixXlinkAttrs() // prevent next reparsing from breaking in Chrome
         // .scaleTo( "height" )
         .containerEl;
 
