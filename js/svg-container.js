@@ -202,7 +202,7 @@ SVGContainer.prototype.getRelativeBBoxOf = function( child ) {
 
   for ( i = 0, l = bBoxes.length; i < l; i++ ) {
     current = bBoxes[ i ];
-    console.log(current)
+
     totalBox.x += totalBox.outerWidth * current.x / totalBox.innerWidth;
     totalBox.y += totalBox.outerHeight * current.y / totalBox.innerHeight;
 
@@ -336,9 +336,16 @@ SVGContainer.prototype.fixTextSelection = function() {
     marker.style.overflow = "hidden";
     marker.style.textAlign = "center";
     marker.style.whiteSpace = "pre";
-
-    // marker.style.background = "rgba(255,255,0,0.25)";
     marker.style.color = "rgba(0,0,0,0.0)";
+    marker.zIndex = 10;
+    
+    marker.style.opacity = 0.5;
+    
+    // We size our characters based on the current pixel size of the originals.
+    // If the SVG is resized, this may become inaccurate. If this value is too
+    // small then the entire character may not be appear to be selected. If it
+    // is too large then the selection may exclude the last character.
+    marker.style.fontSize = bbox.height * this.containerEl.clientHeight + "px";
 
     markerContainer.appendChild( marker );
   }
