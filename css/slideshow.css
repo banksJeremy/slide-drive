@@ -114,3 +114,7 @@ body {
     display: none;
   }
 }
+
+body .mejs-container .mejs-controls .mejs-time span {
+  width: 4em;
+}
