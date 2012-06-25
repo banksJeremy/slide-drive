@@ -104,6 +104,7 @@ slide.
 	/* Update permalink, address bar, and state class on a slide change */
 	.bind('deck.change', function(e, from, to) {
 		var hash = '#' + $[deck]('getSlide', to).attr('id'),
+		hashPath = window.location.href.replace(/#.*/, '') + hash,
 		opts = $[deck]('getOptions'),
 		osp = opts.classes.onPrefix,
 		$c = $[deck]('getContainer');
@@ -111,9 +112,9 @@ slide.
 		$c.removeClass(osp + $[deck]('getSlide', from).attr('id'));
 		$c.addClass(osp + $[deck]('getSlide', to).attr('id'));
 		
-		$(opts.selectors.hashLink).attr('href', hash);
+		$(opts.selectors.hashLink).attr('href', hashPath);
 		if (Modernizr.history) {
-			window.history.replaceState({}, "", hash);
+			window.history.replaceState({}, "", hashPath);
 		}
 	});
 	
