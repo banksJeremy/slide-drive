@@ -36,9 +36,9 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
   var testSvg = getAsBlob( "test-presentation.svg", "image/svg+xml" ),
       testSvg_slideCount = 9;
 
-  atest( "../index.html", 120, function( toCleanUp ) {
+  atest( "../examples/present-html.html", 120, function( toCleanUp ) {
     atest( "Popcorn, jQuery and Deck.js initialized.", 5, function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
       return function poll() {
         return ( frame.Popcorn && frame.jQuery && frame.jQuery.deck ) ? true : poll;
@@ -46,7 +46,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
 
     atest( "Popcorn instance exposed on window(for testing).", function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
       return function poll() {
         return ( frame.popcorn ) ? true : poll;
@@ -54,7 +54,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
 
     atest( "_slideDriveReady is set(for testing).", function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
       return function poll() {
         return ( frame._slideDriveReady ) ? true : poll;
@@ -62,7 +62,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
 
     atest( "Moving in Deck must move in Popcorn.", function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
       return function poll() {
         return ( frame._slideDriveReady ) ? onReady : poll;
@@ -87,7 +87,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
 
     atest( "Transcript must correspond to current slide", function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
       return function poll() {
         return ( frame._slideDriveReady ) ? onReady : poll;
@@ -116,7 +116,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
 
     atest( "Anchor links must be respected", function() {
       atest( "#slide-1" , function( toCleanUp ) {
-        var frame = getFramedWindow( "../index.html#slide-1", toCleanUp );
+        var frame = getFramedWindow( "../examples/present-html.html#slide-1", toCleanUp );
 
         return function poll() {
           return ( frame._slideDriveReady ) ? onReady : poll;
@@ -129,7 +129,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
       } )
 
       atest( "#slide-18" , function( toCleanUp ) {
-        var frame = getFramedWindow( "../index.html#slide-18", toCleanUp );
+        var frame = getFramedWindow( "../examples/present-html.html#slide-18", toCleanUp );
 
         return function poll() {
           return ( frame._slideDriveReady ) ? onReady : poll;
@@ -145,7 +145,7 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
 
     atest( "Left and right arrows move to correct slides (while paused)", function( toCleanUp ) {
-        var frame = getFramedWindow( "../index.html", toCleanUp );
+        var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
 
         return function poll() {
           return ( frame._slideDriveReady ) ? onReady : poll;
@@ -192,18 +192,17 @@ var tests = atest( "Slide Drive Tests", 600, function( toCleanUp ) {
     } );
     
     atest( "Slide indicators exist", function( toCleanUp ) {
-      var frame = getFramedWindow( "../index.html", toCleanUp );
+      var frame = getFramedWindow( "../examples/present-html.html", toCleanUp );
       
       return function poll() {
         return ( frame._slideDriveReady ) ? onReady : poll;
       }
 
       function onReady() {
-        atest("div-1 exists and has nonzero width",
-               parseFloat(frame.document.getElementById("popcorn-slideshow-div-1").style.width) > 0);
-        atest("div-14 exists and has nonzero width",
-               parseFloat(frame.document.getElementById("popcorn-slideshow-div-14").style.width) > 0);
-        
+        atest(
+          ".timeline-indicators exists and has multiple children",
+          frame.document.querySelector(".timeline-indicators").childNodes.length > 1
+        );
       }
     });
   } );

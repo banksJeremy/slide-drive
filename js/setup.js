@@ -418,11 +418,11 @@ addEventListener( "DOMContentLoaded", function() {
           fromSlide = SlideButterOptions( slide ),
           currentTime = popcorn.currentTime();
 
-      if (currentTime < toSlide.start || currentTime > toSlide.end) {
+      var outsideOfTarget = currentTime < toSlide.start || currentTime >= toSlide.end;
+      if ( outsideOfTarget ) {
         popcorn.currentTime( toSlide.start );
       }
     });
-
   }
 
   /* Verifies that the right type of files were dropped, otherwise displays an error.
@@ -842,12 +842,15 @@ addEventListener( "DOMContentLoaded", function() {
   }
 
   function initTimelineTargets () {
-    var container = document.querySelector( ".mejs-time-total" ),
+    var parent = document.querySelector( ".mejs-time-total" ),
+        container = document.createElement( "div" ),
         slides = $.deck( "getSlides" ).map( function( $el ) { return $el[ 0 ]; } ),
         totalTime = popcorn.duration(),
         i, l, slide, slideOptions, markEl, startTime;
-    
-    container.style.position = "relative";
+
+    parent.style.position = "relative";
+    container.classList.add( "timeline-indicators" );
+
     for ( i = 1, l = slides.length; i < l; ++i ) {
       slide = slides[ i ];
       startTime = SlideButterOptions( slide ).start;
@@ -859,8 +862,9 @@ addEventListener( "DOMContentLoaded", function() {
       markEl.style.width = "1px";
       markEl.style.background = "black";
       markEl.style.left = (startTime / totalTime) * 100 + "%";
-      
+
       container.appendChild( markEl );
     }
+    parent.appendChild( container );
   }
 }, false );
