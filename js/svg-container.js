@@ -305,7 +305,7 @@ SVGContainer.prototype.fixXlinkAttrs = function() {
   return this;
 };
 
-SVGContainer.prototype.fixTextSelection = function() {
+SVGContainer.prototype.overlaySelectableSpans = function() {
   // SVG text isn't selectable in Firefox, so in Firefox we'll overlay
   // selectable invisible <span>s to handle it.
 
@@ -319,6 +319,7 @@ SVGContainer.prototype.fixTextSelection = function() {
 
   var markerContainer = document.createElement( "div" );
   markerContainer.classList.add( "SVGContainer-selectable-text-container" );
+  markerContainer.classList.add( "data-butter-exclude" );
 
   var i, l, e, selection = this.rootEl.querySelectorAll( "text" );
   for ( i = 0, l = selection.length; i < l; ++i ) {
@@ -341,9 +342,9 @@ SVGContainer.prototype.fixTextSelection = function() {
     marker.style.whiteSpace = "pre";
     marker.style.color = "rgba(0,0,0,0.0)";
     marker.zIndex = 10;
-    
+
     marker.style.opacity = 0.5;
-    
+
     // We size our characters based on the current pixel size of the originals.
     // If the SVG is resized, this may become inaccurate. If this value is too
     // small then the entire character may not be appear to be selected. If it

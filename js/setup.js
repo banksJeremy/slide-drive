@@ -281,6 +281,7 @@ addEventListener( "DOMContentLoaded", function() {
 
     initEvents();
     initTimelineTargets();
+    fixSVGs();
 
     if ( anchorTargetId != null ) {
       $.deck( "go", anchorTargetId);
@@ -690,11 +691,11 @@ addEventListener( "DOMContentLoaded", function() {
 
       container.appendChild( slideEl );
 
-      // Need to do this after adding to document or fixTextSelection's
+      // Need to do this after adding to document or overlaySelectableSpans's
       // will get confused about the geometry.
       var svgContainerEl = SVGContainer( svgSlide )
         .padTextViewports()
-        .fixTextSelection() // fix text selection in Firefox
+        .overlaySelectableSpans() // fix text selection in Firefox
         .joinAdjacentTextEls() // fix text selection in Chrome
         .fixXlinkAttrs() // fix serialization in Chrome
         // .scaleTo( "height" )
@@ -864,5 +865,16 @@ addEventListener( "DOMContentLoaded", function() {
       container.appendChild( markEl );
     }
     parent.appendChild( container );
+  }
+  
+  function fixSVGs () {
+    var svgs = [].slice.call( document.querySelectorAll( "svg" ) ), i, l;
+    for ( i = 0, l = svgs.length; i < l; ++i ) {
+      SVGContainer( svgs[ i ] )
+        .padTextViewports()
+        .overlaySelectableSpans() // fix text selection in Firefox
+        .joinAdjacentTextEls() // fix text selection in Chrome
+        .fixXlinkAttrs(); // fix serialization in Chrome
+    }
   }
 }, false );
