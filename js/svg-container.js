@@ -1,6 +1,9 @@
 (function() {
 "use strict";
 
+var NS_SVG = "http://www.w3.org/2000/svg",
+    NS_XLINK = "http://www.w3.org/1999/xlink";
+
 window.SVGContainer = SVGContainer;
 
 function SVGContainer( rootEl ) {
@@ -108,7 +111,7 @@ SVGContainer.prototype.padTextViewports = function() {
     e = viewPorts[ i ]
 
     if ( !e.querySelector( ".SVGContainer-bbox-fill" ) ) {
-      var filler = document.createElement( "rect" );
+      var filler = document.createElementNS( NS_SVG, "rect" );
       filler.setAttribute( "class", "SVGContainer-bbox-fill" );
       filler.setAttribute( "x", 0 );
       filler.setAttribute( "y", 0 );
@@ -242,7 +245,7 @@ SVGContainer.prototype.joinAdjacentTextEls = function() {
     }
 
     if ( consecutiveEls.length > 1 ) {
-      var newContainer = document.createElement( "text" );
+      var newContainer = document.createElementNS( NS_SVG, "text" );
 
       newContainer.setAttribute( "x", firstEl.getAttribute( "x" ) );
       newContainer.setAttribute( "y", firstEl.getAttribute( "y" ) );
@@ -251,7 +254,7 @@ SVGContainer.prototype.joinAdjacentTextEls = function() {
         var oldEl = consecutiveEls[ j ],
             oldElAttributes = oldEl.attributes,
             oldElChildren = [].slice.call( oldEl.childNodes ),
-            newEl = document.createElement( "tspan" );
+            newEl = document.createElementNS( NS_SVG, "tspan" );
 
         newContainer.appendChild( newEl );
 
@@ -323,7 +326,7 @@ SVGContainer.prototype.fixTextSelection = function() {
 
     var bbox = this.getRelativeBBoxOf( e );
 
-    var marker = document.createElement("span");
+    var marker = document.createElement( "span" );
     marker.textContent = e.textContent;
 
     marker.classList.add( "SVGContainer-selectable-text-overlay" );

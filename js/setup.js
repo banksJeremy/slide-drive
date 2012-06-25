@@ -5,7 +5,6 @@ addEventListener( "DOMContentLoaded", function() {
       showingPrintable = false,
       inButter         = !!window.Butter,
       butter           = null,
-      fromButter       = !inButter && document.querySelector( "body" ).hasAttribute( "data-butter-crufted" ),
       popcorn          = null,
       anchorTargetId   = null,
       deckInitialized  = false;
@@ -141,14 +140,12 @@ addEventListener( "DOMContentLoaded", function() {
   function init () {
     console.log( "Starting Slide Drive initialization." );
 
-    if ( fromButter ) {
-      // Butter adds <base> tag to our document to make sure the resouce paths are correct.
-      // After loading, it will break our anchor links and have nasty side-effects.
-
-      var base = document.querySelector( "base" );
-      base.parentNode.removeChild( base );
-
-    }
+    // Butter adds <base> tag to our document to make sure the resouce paths are correct.
+    // After loading, it will break our anchor links and have nasty side-effects.
+    // var base = document.querySelector( "base" );
+    // if ( base && base.getAttribute("href") === ".." ) {
+    //   base.parentNode.removeChild( base );
+    // }
 
     if ( window.location.hash > "#" ) {
       anchorTargetId = window.location.hash.substr( 1 );
@@ -696,9 +693,10 @@ addEventListener( "DOMContentLoaded", function() {
       // Need to do this after adding to document or fixTextSelection's
       // will get confused about the geometry.
       var svgContainerEl = SVGContainer( svgSlide )
-        .padTextViewports().fixXlinkAttrs().reparse().fixTextSelection() // fix text selection in Firefox
-        .joinAdjacentTextEls().fixXlinkAttrs().reparse() // fix text selection in Chrome
-        .fixXlinkAttrs() // prevent next reparsing from breaking in Chrome
+        .padTextViewports()
+        .fixTextSelection() // fix text selection in Firefox
+        .joinAdjacentTextEls() // fix text selection in Chrome
+        .fixXlinkAttrs() // fix serialization in Chrome
         // .scaleTo( "height" )
         .containerEl;
 
