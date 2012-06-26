@@ -119,7 +119,9 @@
               slideSvg = slideSvg.querySelector( "svg" );
             }
             if ( slideSvg ) {
-              document.getElementById( "sd_thumbnail_container" ).appendChild( slideSvg.cloneNode( true ) );
+              var clonedSvg = slideSvg.cloneNode( true );
+              document.getElementById( "sd_thumbnail_container" ).appendChild( clonedSvg );
+              window.parent.SVGContainer( clonedSvg );
             }
 
             for( var item in _manifest ) {
