@@ -35,11 +35,8 @@
       }, 
       start: function( event, options ) {
         $.deck( "go", options.slideId );
-        document.getElementById( "slideshow-transcript" ).innerHTML = options.transcriptSource;
-        document.getElementById( "slideshow-transcript" ).style.padding = "5px 5px 5px 5px";
       },
       end: function( event, options ) {
-        document.getElementById( "slideshow-transcript" ).innerHTML = "";
       },
     });
 })( Popcorn );

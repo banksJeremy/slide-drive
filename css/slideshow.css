@@ -81,6 +81,7 @@ body {
   border-style: solid !important;
   border-width: 1px !important;
   border-color: black !important;
+  padding: 5px;
 }
 
 .printable-container {

@@ -263,7 +263,7 @@ addEventListener( "DOMContentLoaded", function() {
       currentOptions = SlideButterOptions( slidesEls[ i ] );
 
       if ( previousOptions ) {
-        previousOptions.end = currentOptions.start;
+        previousOptions.end = currentOptions.start - 0.001;
       }
 
       slideEvents.push( currentOptions );
@@ -282,6 +282,8 @@ addEventListener( "DOMContentLoaded", function() {
     initEvents();
     initTimelineTargets();
     fixSVGs();
+
+    document.getElementById( "slideshow-transcript" ).innerHTML = SlideButterOptions( document.querySelector(".slide") ).transcriptSource;
 
     if ( anchorTargetId != null ) {
       $.deck( "go", anchorTargetId);
@@ -415,6 +417,8 @@ addEventListener( "DOMContentLoaded", function() {
       var toSlide = SlideButterOptions( slide ),
           fromSlide = SlideButterOptions( slide ),
           currentTime = popcorn.currentTime();
+
+      document.getElementById( "slideshow-transcript" ).innerHTML = toSlide.transcriptSource;
 
       var outsideOfTarget = currentTime < toSlide.start || currentTime >= toSlide.end;
       if ( outsideOfTarget ) {
