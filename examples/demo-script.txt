@@ -1,0 +1,158 @@
+
+The Japanese had their haikus.
+
+
+Shakespeare wrote his sonnets.
+
+
+We... have PowerPoint presentations.
+
+
+PowerPoint has its detractors,
+but blaming it for bad presentations
+is like blaming fountain pens for bad poetry.
+
+
+The *real* problem with PowerPoint
+and its open source equivalents...
+
+
+...is that they aren't web-friendly.
+
+
+If you export a slideshow as a web page...
+
+
+...what you actually get is a bunch of images.
+
+
+There aren't actually any words in these images.
+
+
+There are just pixels that happen to be arranged in patterns
+our eyes and brains can translate into letters.
+
+
+Search engines can't read this text.
+
+
+Neither can accessibility aids for the visually impaired.
+
+
+And those things that look like hyperlinks?
+They're not---they're just more pixels.
+
+
+One solution is to use HTML5 and Javascript
+to create real web-native content.
+
+
+But these are even worse than PowerPoint
+when it comes to making everything a bunch of bullet points.
+
+
+HTML5 doesn't let you draw on top of your text
+the way you would on a whiteboard
+or in PowerPoint.
+
+
+(Well-technically-speaking-you-can-if-you-superimpose-a-canvas-element-and-position-things-correctly-but-that's-very-fragile,doesn't-improve-accessibility-and-is-still-opaque-to-search-engines-so-we don't-regard-it-as-a-solution.)
+
+
+The goal of the Slide Drive project is to create
+a real web-native presentation tool.
+
+
+To do this,
+we're taking advantage of Popcorn,
+which provides a Javascript event framework for HTML5...
+
+
+...and Butter,
+an authoring tool built on top of Popcorn.
+
+
+We're also using LibreOffice Impress as a front end.
+It provides all the slideshow creation tools we need...
+
+
+...and knows how to convert presentations in other formats,
+particularly PowerPoint.
+
+
+Here's how it all works.
+
+
+Step 1: create a presentation using LibreOffice.
+
+
+Step 2: using the export tools that Marco Cecchetti has been building,
+save the presentation as SVG.
+
+
+This creates a single document with one SVG diagram per slide,
+along with metadata about the desired transition effects.
+
+
+Step 3: drag and drop the slideshow onto Butter to import it.
+
+
+Step 4: edit the slideshow in Butter.
+
+
+For example,
+if you want to synchronize with a voiceover,
+you can import the MP3...
+
+
+...then stretch and shrink the slides
+to line up with time marks.
+
+
+Why is this a better solution?
+
+
+Because everything on your screen is native web content.
+
+
+Pause this slideshow for a second
+and click on this link.
+
+
+It worked, didn't it?
+It opened a page in a new tab,
+and it restarted this slideshow.
+
+
+Now pause this show again
+and click on the link in that other tab.
+
+
+That's right:
+you can hyperlink into a presentation,
+just like you can hyperlink into a particular section of a web page.
+
+
+And when you copy and paste,
+you get the text you expect,
+rather that a section of an image.
+
+
+Now,
+nothing's perfect.
+We still have issues with:
+
+rich slide transitions and animations,
+custom font support,
+performance and compatibility in some browsers,
+and embedded audio and video,
+
+But we hope this short demo has shown you what we're doing,
+and the tremendous potential it has.
+
+
+If you'd like to learn more,
+or help us out,
+please go to git hub .com/dseif/slide-drive
+
+Thank you for your time.
