@@ -34,6 +34,7 @@
         // Perhaps DOM-reflecting properties could be initialized here.
       }, 
       start: function( event, options ) {
+        console.log("Updating slide due to change in currentTime", options.slideId, "from", $.deck("getSlide")[0].id, event);
         $.deck( "go", options.slideId );
       },
       end: function( event, options ) {

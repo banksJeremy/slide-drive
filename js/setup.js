@@ -9,6 +9,19 @@ addEventListener( "DOMContentLoaded", function() {
       anchorTargetId   = null,
       deckInitialized  = false;
 
+  $(document).bind( "deck.change", function() {
+    console.log("deck.change", arguments, popcorn.currentTime());
+  });
+  $(document).bind( "deck.init", function() {
+    console.log("deck.init", arguments, popcorn.currentTime());
+  });
+
+$.fn.mediaelementplayer_=function(o){
+  this[0].controls = true;
+  this[0].style.display = "";
+  o.success();
+}
+
   init();
 
   window.SlideButterOptions = SlideButterOptions;
@@ -169,10 +182,20 @@ addEventListener( "DOMContentLoaded", function() {
   function initMediaAndWait () {
     console.log( "Initializing media player and waiting for it to be ready." );
 
-    popcorn = Popcorn( "#audio", { frameAnimation: true });
+    popcorn = Popcorn( "#audio", { frameAnimation: false });
 
     window.popcorn = popcorn; // TODO remove this after debugging
-
+    
+    document.querySelector("#audio").addEventListener("timeupdate", function(e) {
+      console.log("timeupdate on audio", arguments);
+    })
+    document.querySelector("#audio").addEventListener("ended", function(e) {
+      console.log("ended on audio", arguments);
+    })
+    popcorn.on("timeupdate", function() {
+      console.log("timeupdate on popcorn", arguments);
+    })
+  
     var pollUntilReady;
 
     $("audio").mediaelementplayer({
@@ -180,7 +203,7 @@ addEventListener( "DOMContentLoaded", function() {
         console.log( "MediaElement ready, waiting for popcorn.readyState() >= 2 (currently " + popcorn.readyState() + ")" );
 
         if ( popcorn.readyState() >= 2 ) {
-          console.log("ready...");
+          console.log("popcorn.readyState() >= 2, continuing.");
 
           if ( !inButter ) {
             initAfterMediaReady();
@@ -244,8 +267,6 @@ addEventListener( "DOMContentLoaded", function() {
       });
     }
 
-    initDeck();
-
     // Parse slide data into live Popcorn events or Butter timeline events.
     var butterTrack,
         addEvent = inButter ? function ( options ) { butterTrack.addTrackEvent({ type: "slidedrive", popcornOptions: options }); }
@@ -280,22 +301,23 @@ addEventListener( "DOMContentLoaded", function() {
     // $.deck.enableScale();
 
     initEvents();
+
+    initDeck();
+
     initTimelineTargets();
     fixSVGs();
 
-    document.getElementById( "slideshow-transcript" ).innerHTML = SlideButterOptions( document.querySelector(".slide") ).transcriptSource;
-
-    if ( anchorTargetId != null ) {
-      $.deck( "go", anchorTargetId);
-    }
-
     window._slideDriveReady = true; // required for tests
   }
-
+  
   function initDeck() {
+    // If we haven't yet moved to the permalink target, restore that after initialization
+    // instead of this one?
+
     if ( deckInitialized ) {
       // Re-initializing the Deck will add any new slides, but it causes the
       // presentation to be reset to the first slide, so we preserve its state.
+      console.log("Re-initializing Deck.js.");
 
       var currentTime = popcorn.currentTime(),
           currentSlide$ = $.deck( "getSlide" ),
@@ -313,8 +335,16 @@ addEventListener( "DOMContentLoaded", function() {
 
       popcorn.currentTime( currentTime );
     } else {
+      console.log("Initializing Deck.js.");
+      
       deckInitialized = true;
       $.deck( ".slide" );
+
+      if ( anchorTargetId != null ) {
+        console.log("Navigating to permalink target #" + anchorTargetId);
+        
+        $.deck( "go", anchorTargetId );
+      }
     }
   }
 
@@ -390,6 +420,7 @@ addEventListener( "DOMContentLoaded", function() {
           parentSlides = $( slide ).parents( ".slide" ),
           i, l;
       
+      
       var oldMedia = oldSlide.querySelectorAll( ".synced-media" ),
           newMedia = slide.querySelectorAll( ".synced-media" );
 
@@ -422,6 +453,7 @@ addEventListener( "DOMContentLoaded", function() {
 
       var outsideOfTarget = currentTime < toSlide.start || currentTime >= toSlide.end;
       if ( outsideOfTarget ) {
+        console.log("Updating currentTime to match slide: ", toSlide.start, toSlide.slideId)
         popcorn.currentTime( toSlide.start );
       }
     });

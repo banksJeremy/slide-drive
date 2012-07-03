@@ -10,10 +10,11 @@ from boto.s3.connection import S3Connection
 s3 = S3Connection()
 bucket = S3Connection().create_bucket("slide-drive-demo")
 
-
-print "Uploading modified examples/demo.html"
+print "Loading examples/demo.html"
 
 demo_source = open("examples/demo.html", "rb").read().replace("http://localhost:8888/", "/")
+
+print "Uploading modified examples/demo.html"
 
 demo_key = bucket.new_key("examples/demo.html")
 demo_key.metadata.update({ "Content-Type": "text/html" })
@@ -26,9 +27,13 @@ bulk_paths = [
   "examples/demo-audio.mp3",
   "external/deckjs",
   "external/jquery",
-  "external/mediaelement",
+  "external/mediaelement/build/mediaelement-and-player.js",
   "external/modernizr",
   "external/butter/src/butter.js",
+  "external/butter/css/butter.ui.css",
+  "external/butter/css/butter.ui.deprecated.css",
+  "external/butter/external/popcorn-js/modules/player/popcorn.player.js",
+  "external/butter/external/popcorn-js/modules/player/popcorn.player.js",
   "external/butter/external/popcorn-js/popcorn.js",
   "external/butter/external/require"
 ]
