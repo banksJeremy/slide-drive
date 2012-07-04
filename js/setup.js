@@ -346,6 +346,8 @@ $.fn.mediaelementplayer_=function(o){
         $.deck( "go", anchorTargetId );
       }
     }
+    
+    initTimelineTargets();
   }
 
   // Initialize keyboard shorcuts (disable Deck's if in Butter, else enable our own).
@@ -619,6 +621,14 @@ $.fn.mediaelementplayer_=function(o){
       var element = fontUsers[ i ],
           fontFamily = element.getAttribute( "font-family" );
 
+      if ( element.nodeName === "font-face" ) {
+        // If the embedded fonts use the same name as built-in fonts, they will replace them
+        // everywhere in the document, not just inside the SVG. Since these embedded fonts
+        // don't look as good as the native ones, we need to make sure they keep the
+        // "embedded" sufix.
+        continue;
+      }
+
       fontFamily = fontFamily.replace( / embedded$/, '' ).toLowerCase();
 
       if ( !(fontFamily in fontUsage) ) {
@@ -880,8 +890,13 @@ $.fn.mediaelementplayer_=function(o){
     var parent = document.querySelector( ".mejs-time-total" ),
         container = document.createElement( "div" ),
         slides = $.deck( "getSlides" ).map( function( $el ) { return $el[ 0 ]; } ),
+        existingIndicators = document.querySelector( ".timeline-indicators" ),
         totalTime = popcorn.duration(),
         i, l, slide, slideOptions, markEl, startTime;
+
+    if ( existingIndicators ) {
+      existingIndicators.parentNode.removeChild( existingIndicators );
+    }
 
     parent.style.position = "relative";
     container.classList.add( "timeline-indicators" );
