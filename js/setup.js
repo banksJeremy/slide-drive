@@ -285,6 +285,10 @@ addEventListener( "DOMContentLoaded", function() {
 
     fixSVGs();
 
+    if ( location.search.match( /(^\?|&)autoplay=1(&|$)/ ) ) {
+      popcorn.play();
+    }
+
     window._slideDriveReady = true; // required for tests
   }
   
