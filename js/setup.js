@@ -9,19 +9,6 @@ addEventListener( "DOMContentLoaded", function() {
       anchorTargetId   = null,
       deckInitialized  = false;
 
-  $(document).bind( "deck.change", function() {
-    console.log("deck.change", arguments, popcorn.currentTime());
-  });
-  $(document).bind( "deck.init", function() {
-    console.log("deck.init", arguments, popcorn.currentTime());
-  });
-
-$.fn.mediaelementplayer_=function(o){
-  this[0].controls = true;
-  this[0].style.display = "";
-  o.success();
-}
-
   init();
 
   window.SlideButterOptions = SlideButterOptions;
@@ -96,6 +83,8 @@ $.fn.mediaelementplayer_=function(o){
             }
 
             initDeck();
+          } else {
+            initTimelineTargets();
           }
         }
       },
@@ -182,24 +171,14 @@ $.fn.mediaelementplayer_=function(o){
   function initMediaAndWait () {
     console.log( "Initializing media player and waiting for it to be ready." );
 
-    popcorn = Popcorn( "#audio", { frameAnimation: false });
-
-    window.popcorn = popcorn; // TODO remove this after debugging
-    
-    document.querySelector("#audio").addEventListener("timeupdate", function(e) {
-      console.log("timeupdate on audio", arguments);
-    })
-    document.querySelector("#audio").addEventListener("ended", function(e) {
-      console.log("ended on audio", arguments);
-    })
-    popcorn.on("timeupdate", function() {
-      console.log("timeupdate on popcorn", arguments);
-    })
-  
     var pollUntilReady;
 
     $("audio").mediaelementplayer({
-      success: pollUntilReady = function () {
+      // enablePluginDebug: true,
+
+      success: pollUntilReady = function ( mediaElement, domObject ) {
+        window.popcorn = popcorn = Popcorn( mediaElement, { frameAnimation: false });
+
         console.log( "MediaElement ready, waiting for popcorn.readyState() >= 2 (currently " + popcorn.readyState() + ")" );
 
         if ( popcorn.readyState() >= 2 ) {
@@ -216,7 +195,7 @@ $.fn.mediaelementplayer_=function(o){
           }
         } else {
           console.log("waiting...");
-          setTimeout( pollUntilReady, 250 );
+          setTimeout( pollUntilReady, 250,  mediaElement, domObject  );
         }
       }
     });
@@ -304,7 +283,6 @@ $.fn.mediaelementplayer_=function(o){
 
     initDeck();
 
-    initTimelineTargets();
     fixSVGs();
 
     window._slideDriveReady = true; // required for tests
@@ -887,9 +865,12 @@ $.fn.mediaelementplayer_=function(o){
   }
 
   function initTimelineTargets () {
+    console.log( "Setting slide indicators on timeline." );
+
     var parent = document.querySelector( ".mejs-time-total" ),
         container = document.createElement( "div" ),
-        slides = $.deck( "getSlides" ).map( function( $el ) { return $el[ 0 ]; } ),
+        slidesFromDeck = $.deck( "getSlides" ),
+        slides = slidesFromDeck ? slidesFromDeck.map( function( $el ) { return $el[ 0 ]; } ) : [],
         existingIndicators = document.querySelector( ".timeline-indicators" ),
         totalTime = popcorn.duration(),
         i, l, slide, slideOptions, markEl, startTime;
@@ -901,10 +882,14 @@ $.fn.mediaelementplayer_=function(o){
     parent.style.position = "relative";
     container.classList.add( "timeline-indicators" );
 
-    for ( i = 1, l = slides.length; i < l; ++i ) {
+    for ( i = 0, l = slides.length; i < l; ++i ) {
       slide = slides[ i ];
       startTime = SlideButterOptions( slide ).start;
-      
+
+      if ( startTime === 0 ) {
+        continue;
+      }
+
       markEl = document.createElement( "div" );
       markEl.style.position = "absolute";
       markEl.style.top = 0;
