@@ -659,6 +659,8 @@ addEventListener( "DOMContentLoaded", function() {
     }( " ", possibleSubslides ));
     */
     
+    stripSVGCruft( root );
+    
     var slides = document.querySelectorAll( ".deck-container .slide" );
 
     var cumulativeDuration = (slides[ slides.length - 1 ] && slides[ slides.length - 1 ].getAttribute( "data-popcorn-slideshow" ) || 0) + 3;
@@ -698,6 +700,8 @@ addEventListener( "DOMContentLoaded", function() {
       for ( j = 0; j < hiddenElements.length; j++ ) {
         hiddenElements[ j ].parentNode.removeChild( hiddenElements[ j ] );
       }
+
+      stripSVGCruft( svgSlide );
 
       var container = document.querySelector( ".deck-container" );
 
@@ -782,7 +786,27 @@ addEventListener( "DOMContentLoaded", function() {
     
     return rootChildren;
   }
-  
+
+  // Removes empty <def></def> elements and any whitespace nodes that aren't inside of <text>.
+  function stripSVGCruft( node ) {
+    var children = [].slice.apply(node.childNodes), i, l, node;
+    for ( i = 0, l = children.length; i < l; ++i )  {
+      stripSVGCruft( children[ i ] );
+    }
+
+    if ( node.nodeType === Node.TEXT_NODE
+         && node.parentNode.nodeName !== "tspan"
+         && node.parentNode.nodeName !== "text" ) {
+      if ( /^\s*$/.test(node.textContent) ) {
+        node.parentNode.removeChild( node )
+      }
+    } else if ( node.nodeType === Node.ELEMENT_NODE ) {
+      if ( node.nodeName === "defs" && node.childNodes.length === 0 ) {
+        node.parentNode.removeChild( node )
+      }
+    }
+  }
+
   // Returns the "id" attribute value for a given element.
   // If the element does not have an "id" attribute defined, it is given a random one based on its text content.-
   function getIdForEl( el ) {
