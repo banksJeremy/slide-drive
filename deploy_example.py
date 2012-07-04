@@ -25,6 +25,7 @@ bulk_paths = [
   "js",
   "css",
   "examples/demo-audio.mp3",
+  "examples/demo-external-page.html",
   "external/deckjs",
   "external/jquery",
   "external/mediaelement/build/mediaelement-and-player.js",

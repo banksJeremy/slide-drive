@@ -1,4 +1,3 @@
-
 The Japanese had their haikus.
 
 
@@ -56,7 +55,7 @@ the way you would on a whiteboard
 or in PowerPoint.
 
 
-(Well-technically-speaking-you-can-if-you-superimpose-a-canvas-element-and-position-things-correctly-but-that's-very-fragile,doesn't-improve-accessibility-and-is-still-opaque-to-search-engines-so-we don't-regard-it-as-a-solution.)
+(Well, technically speaking you can if you superimpose a canvas element and position things correctly but that's very fragile,doesn't improve accessibility and is still opaque to search engines so we don't regard it as a solution.)
 
 
 The goal of the Slide Drive project is to create
@@ -89,7 +88,6 @@ Step 1: create a presentation using LibreOffice.
 Step 2: using the export tools that Marco Cecchetti has been building,
 save the presentation as SVG.
 
-
 This creates a single document with one SVG diagram per slide,
 along with metadata about the desired transition effects.
 
@@ -111,21 +109,17 @@ to line up with time marks.
 
 Why is this a better solution?
 
-
 Because everything on your screen is native web content.
 
-
-Pause this slideshow for a second
-and click on this link.
+Pause this slideshow for a second and click on this link.
 
 
-It worked, didn't it?
-It opened a page in a new tab,
-and it restarted this slideshow.
+Hey, you didn't pause!
 
+If you had followed that link we would have shown you an ordinary web page
+containing another link that would re-open and resume this presentation.
 
-Now pause this show again
-and click on the link in that other tab.
+That's okay. We'll just continue as though you did follow our instructions.
 
 
 That's right:
@@ -153,6 +147,6 @@ and the tremendous potential it has.
 
 If you'd like to learn more,
 or help us out,
-please go to git hub .com/dseif/slide-drive
+please go to github.com/dseif/slide-drive
 
 Thank you for your time.
