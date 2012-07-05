@@ -299,7 +299,6 @@ SVGContainer.prototype.fixXlinkAttrs = function() {
 
     el.removeAttribute( "xlink:href" );
     el.setAttribute( "xlink:href", href );
-    el.setAttributeNS( "http://www.w3.org/1999/xlink", "href", href );
   }
 
   return this;
