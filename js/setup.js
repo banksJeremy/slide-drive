@@ -38,7 +38,9 @@ addEventListener( "DOMContentLoaded", function() {
     if ( !(this instanceof SlideButterOptions) ) {
       return new SlideButterOptions( _el );
     }
-
+    
+    this.startHandlers = [];
+    this.endHandlers = [];
     $( _el ).data( "slidedrive.butteroptions", this );
 
     Object.defineProperties( this, {
@@ -138,6 +140,24 @@ addEventListener( "DOMContentLoaded", function() {
 
     this.end = this.start + 1;
   }
+
+  SlideButterOptions.prototype = {
+    _onstart: function() {
+      for ( var i = 0; i < this.startHandlers.length; ++i ) {
+        if ( this.startHandlers[ i ].apply( this ) === false ) {
+          return false;
+        }
+      }
+    },
+
+    _onend: function() {
+      for ( var i = 0; i < this.startHandlers.length; ++i ) {
+        if ( this.endHandlers[ i ].apply( this ) === false ) {
+          return false;
+        }
+      }
+    }
+  };
 
   function init () {
     console.log( "Starting Slide Drive initialization." );
@@ -285,6 +305,8 @@ addEventListener( "DOMContentLoaded", function() {
 
     fixSVGs();
 
+    [].forEach.call( document.querySelectorAll( "video" ), syncVideo );
+
     if ( location.search.match( /(^\?|&)autoplay=1(&|$)/ ) ) {
       popcorn.play();
     }
@@ -403,20 +425,6 @@ addEventListener( "DOMContentLoaded", function() {
           outerSlide = slide,
           parentSlides = $( slide ).parents( ".slide" ),
           i, l;
-      
-      
-      var oldMedia = oldSlide.querySelectorAll( ".synced-media" ),
-          newMedia = slide.querySelectorAll( ".synced-media" );
-
-      for ( i = 0, l = oldMedia.length; i < l; ++i ) {
-        Popcorn( oldMedia[ i ] ).pause();
-      }
-
-      for ( i = 0; i < newMedia.length; ++i ) {
-        var media = Popcorn( newMedia[ i ] );
-        media.currentTime( 0 );
-        media.play();
-      }
 
       // Size should be based on height of the current master slide, not sub-slide.
       if (parentSlides.length) {
@@ -939,6 +947,78 @@ addEventListener( "DOMContentLoaded", function() {
         .overlaySelectableSpans() // fix text selection in Firefox
         .joinAdjacentTextEls() // fix text selection in Chrome
         .fixXlinkAttrs(); // fix serialization in Chrome
+    }
+  }
+
+  /*
+    So... we want to be able to sync embedded videos to the master popcorn object.
+    Does adjusting currentTime count as seeking? I think not. Therefore it is impossible
+    to detect specific jumps, instead of regular playing, so we will have to sync.
+    
+    It does count as seeking!
+    So we just need to watch... play, pause, volumechange, seeked... and let's pause on seeking.
+    
+    None of these events are too frequent, so making it general, rather than optimizing it, is doable.
+  */
+  
+  // End will be the end of the last child slide of the current slide?
+  // Screwit we don't have subslides yet.
+  // Hmm... can you attach other handlers to the start and end events (are they events) of a track event?
+  // That would be the best solution... although we would still need some way to get a reference to
+  // the track event. If SlideButterOptions were initialized in inside the event's stuff, it could be done
+  // there. We could special-case re-instantiation in that context to update the existing object before
+  // returning it.
+  function syncVideo( el ) {
+    console.log("Setting up synced video.")
+
+    var slideOptions = SlideButterOptions( $( el ).closest( ".slide" )[ 0 ] ),
+        elPopcorn = Popcorn( el ),
+        wasPlaying = false;
+
+    el.controls = false;
+    popcorn.on( "volumechange", onVolumeChange );
+
+    slideOptions.startHandlers.push(function() {
+      elPopcorn.currentTime( popcorn.currentTime() - slideOptions.start );
+      elPopcorn.play();
+      popcorn.on( "play", onPlay );
+      popcorn.on( "pause", onPause );
+      popcorn.on( "seeked", onSeeked );
+      popcorn.on( "seeking", onSeeking );
+    });
+
+    slideOptions.endHandlers.push(function() {
+      elPopcorn.pause();
+      popcorn.off( "play", onPlay );
+      popcorn.off( "pause", onPause );
+      popcorn.off( "seeked", onSeeked );
+      popcorn.off( "seeking", onSeeking );
+    });
+
+    function onPlay() {
+      elPopcorn.play();
+      wasPlaying = true;
+    }
+
+    function onPause() {
+      elPopcorn.pause();
+      wasPlaying = false;
+    }
+
+    function onVolumeChange() {
+      elPopcorn.volume( popcorn.volume() );
+    }
+
+    function onSeeked() {
+      elPopcorn.currentTime( popcorn.currentTime() - slideOptions.start );
+
+      if ( wasPlaying ) {
+        elPopcorn.play();
+      }
+    }
+    
+    function onSeeking() {
+      elPopcorn.pause();
     }
   }
 }, false );

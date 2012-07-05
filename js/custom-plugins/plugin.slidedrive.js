@@ -31,13 +31,20 @@
         }
       },
       _setup: function( options ) {
-        // Perhaps DOM-reflecting properties could be initialized here.
+        options._slideButterOptions = SlideButterOptions( document.getElementById( options.slideId ) );
       }, 
       start: function( event, options ) {
-        console.log("Updating slide due to change in currentTime", options.slideId, "from", $.deck("getSlide")[0].id, event);
+        if ( options._slideButterOptions._onstart() === false ) {
+          return;
+        }
+
         $.deck( "go", options.slideId );
       },
       end: function( event, options ) {
+        if ( options._slideButterOptions._onend() === false ) {
+          return;
+        }
+
       },
     });
 })( Popcorn );
