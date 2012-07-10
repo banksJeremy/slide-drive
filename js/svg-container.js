@@ -17,6 +17,8 @@ function SVGContainer( rootEl ) {
 
   this.rootEl = rootEl;
 
+  this.aspectRatio = rootEl.viewBox.baseVal.width / rootEl.viewBox.baseVal.height;
+
   if ( rootEl.parentNode && rootEl.parentNode.classList.contains( "SVGContainer" ) ) {
     this.containerEl = rootEl.parentNode;
   } else {
@@ -356,7 +358,32 @@ SVGContainer.prototype.overlaySelectableSpans = function() {
   this.containerEl.appendChild( markerContainer );
 
   return this;
-}
+};
+
+// Causes the SVGContainer to be resized to fit the SVG in the middle of the
+// container's parent's clientHeight/clientWidth.
+SVGContainer.prototype.fit = function( parentContainer ) {
+  parentContainer = parentContainer || this.containerEl.parentNode;
+  var availableHeight = parentContainer.clientHeight,
+      availableWidth = parentContainer.clientWidth,
+      
+      widthFitToHeight = availableHeight * this.aspectRatio,
+      heightFitToWidth = availableWidth / this.aspectRatio;
+
+  if ( widthFitToHeight <= availableWidth ) {
+    // Scale to height
+    var extraWidth = availableWidth - widthFitToHeight;
+    this.containerEl.style.width = widthFitToHeight;
+    this.containerEl.style.marginLeft = extraWidth / 2;
+    this.containerEl.style.marginTop = 0;
+  } else {
+    // Scale to width
+    var extraHeight = availableHeight - heightFitToWidth;
+    this.containerEl.style.width = "100%";
+    this.containerEl.style.marginLeft = 0;
+    this.containerEl.style.marginTop = extraHeight / 2;
+  }
+};
 
 function gcd( a, b ) {
   if ( a < 0 ) {

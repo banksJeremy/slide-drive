@@ -304,6 +304,7 @@ addEventListener( "DOMContentLoaded", function() {
     initDeck();
 
     fixSVGs();
+    svgsRequireRescaling();
 
     [].forEach.call( document.querySelectorAll( "video" ), syncVideo );
 
@@ -449,6 +450,41 @@ addEventListener( "DOMContentLoaded", function() {
         popcorn.currentTime( toSlide.start );
       }
     });
+
+    window.addEventListener("resize", function() {
+      svgsRequireRescaling();
+    });
+  }
+  
+  // Debounce - scale all 200ms after last call.
+  var svgsRequireRescaling = debounce(function() {
+    var svgs = document.querySelectorAll("svg"), i, l;
+    for ( i = 0, l = svgs.length; i < l; ++i ) {
+      SVGContainer( svgs[ i ] ).fit( document.querySelector( ".deck-container" ) );
+    }
+  }, 200);
+
+  // Creates and returns a new debounced version of the passed nullary
+  // function that will postpone its execution until after interval ms
+  // have elapsed since the last time it was invoked.
+  function debounce( f, interval ) {
+    function debounced() {
+      if ( debounced._pendingTimeoutId ) {
+        clearTimeout( debounced._pendingTimeoutId );
+      }
+      debounced._pendingTimeoutId = setTimeout( fire, interval );
+    };
+    function fire() {
+      debounced._pendingTimeoutId = null;
+      f();
+    };
+    debounced.interval = interval;
+    debounced.f = f;
+    debounced._pendingTimeoutId = null;
+    if (f.name) {
+      debounced.name = f.name + "_debounced";
+    }
+    return debounced;
   }
 
   /* Verifies that the right type of files were dropped, otherwise displays an error.
@@ -743,7 +779,7 @@ addEventListener( "DOMContentLoaded", function() {
         // .scaleTo( "height" )
         .containerEl;
 
-      // svgContainerEl.style.height = "100%";
+      svgsRequireRescaling();
 
       track.addTrackEvent({
         type: "slidedrive",
