@@ -731,6 +731,8 @@ addEventListener( "DOMContentLoaded", function() {
 
       container.appendChild( slideEl );
 
+      jQuery(".com\\.sun\\.star\\.drawing\\.LineShape mask", svgSlide).remove();
+
       // Need to do this after adding to document or overlaySelectableSpans's
       // will get confused about the geometry.
       var svgContainerEl = SVGContainer( svgSlide )
@@ -941,6 +943,8 @@ addEventListener( "DOMContentLoaded", function() {
   
   function fixSVGs () {
     var svgs = [].slice.call( document.querySelectorAll( "svg" ) ), i, l;
+    $(".com\\.sun\\.star\\.drawing\\.LineShape mask").remove();
+    
     for ( i = 0, l = svgs.length; i < l; ++i ) {
       SVGContainer( svgs[ i ] )
         .padTextViewports()
@@ -984,7 +988,6 @@ addEventListener( "DOMContentLoaded", function() {
       popcorn.on( "play", onPlay );
       popcorn.on( "pause", onPause );
       popcorn.on( "seeked", onSeeked );
-      popcorn.on( "seeking", onSeeking );
     });
 
     slideOptions.endHandlers.push(function() {
@@ -992,17 +995,14 @@ addEventListener( "DOMContentLoaded", function() {
       popcorn.off( "play", onPlay );
       popcorn.off( "pause", onPause );
       popcorn.off( "seeked", onSeeked );
-      popcorn.off( "seeking", onSeeking );
     });
 
     function onPlay() {
       elPopcorn.play();
-      wasPlaying = true;
     }
 
     function onPause() {
       elPopcorn.pause();
-      wasPlaying = false;
     }
 
     function onVolumeChange() {
@@ -1011,14 +1011,6 @@ addEventListener( "DOMContentLoaded", function() {
 
     function onSeeked() {
       elPopcorn.currentTime( popcorn.currentTime() - slideOptions.start );
-
-      if ( wasPlaying ) {
-        elPopcorn.play();
-      }
-    }
-    
-    function onSeeking() {
-      elPopcorn.pause();
     }
   }
 }, false );
