@@ -64,6 +64,7 @@ function makeContainer( el ) {
   imageForScale.style.minHeight = "none";
   imageForScale.style.maxWidth = "none";
   imageForScale.style.maxHeight = "none";
+  imageForScale.style.margin = 0;
   imageForScale.style.display = "block";
 
   if ( parentNode ) {
