@@ -373,13 +373,16 @@ SVGContainer.prototype.fit = function( parentContainer ) {
   if ( widthFitToHeight <= availableWidth ) {
     // Scale to height
     var extraWidth = availableWidth - widthFitToHeight;
-    this.containerEl.style.width = widthFitToHeight;
-    this.containerEl.style.marginLeft = extraWidth / 2;
-    this.containerEl.style.marginTop = 0;
+    
+    this.containerEl.style.width = widthFitToHeight + "px";
+    
+    this.containerEl.style.margin = "0 auto";
   } else {
     // Scale to width
     var extraHeight = availableHeight - heightFitToWidth;
+    
     this.containerEl.style.width = "100%";
+    
     this.containerEl.style.marginLeft = 0;
     this.containerEl.style.marginTop = extraHeight / 2;
   }
