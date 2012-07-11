@@ -306,6 +306,11 @@ addEventListener( "DOMContentLoaded", function() {
     fixSVGs();
     svgsRequireRescaling();
 
+    // The popcorn event for slide 0 isn't fired properly if the video starts inside it, so
+    // we need to move out of it and back to it.
+    $.deck("next");
+    $.deck("prev");
+
     [].forEach.call( document.querySelectorAll( "video" ), syncVideo );
 
     if ( location.search.match( /(^\?|&)autoplay=1(&|$)/ ) ) {
