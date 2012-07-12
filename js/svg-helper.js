@@ -27,27 +27,28 @@ function writeStyle() {
     styleEl.id = "SVGFontHelper-style";
     document.head.appendChild( styleEl );
   }
-  
+
   if ( !scriptEl ) {
     scriptEl = document.createElement( "script" );
     scriptEl.type = "application/json";
     scriptEl.id = "SVGFontHelper-data";
     document.head.appendChild( scriptEl );
   }
-  
+
   scriptEl.textContent = JSON.stringify( fonts, null, 2 );
   styleEl.textContent = fonts.map(function( description_data ) {
     var description = description_data[0], data = description_data[1];
-    
+
     return "@font-face {\n" +
       "  font-family: \"" + description.fontFamily + "\";\n" +
-      // "  font-style: " + description.fontStyle + ";\n" +
-      // "  font-variant: " + description.fontVariant + ";\n" +
-      // "  font-weight: " + description.fontWeight + ";\n" +
-      // "  font-stretch: " + description.fontStretch + ";\n" +
-      // "  units-per-em: " + description.unitsPerEm + ";\n" +
-      // (description.ascent ? "  ascent: " + description.ascent + ";\n" : "") +
-      // (description.descent ? "  descent: " + description.descent + ";\n" : "") +
+      "  font-style: " + description.fontStyle + ";\n" +
+      "  font-size: " + description.fontSize + ";\n" +
+      "  font-variant: " + description.fontVariant + ";\n" +
+      "  font-weight: " + description.fontWeight + ";\n" +
+      "  font-stretch: " + description.fontStretch + ";\n" +
+      "  units-per-em: " + description.unitsPerEm + ";\n" +
+      (description.ascent ? "  ascent: " + description.ascent + ";\n" : "") +
+      (description.descent ? "  descent: " + description.descent + ";\n" : "") +
       "  src: local(\"" + description.fontFamily + "\"),\n" +
       "       url(\"" + makeDataURIForFont( description, data ) + "\") format(\"svg\");\n" +
     " }";
@@ -65,13 +66,14 @@ function makeDataURIForFont( description, data ) {
   defsEl.appendChild( fontEl );
 
   fontFaceEl.setAttribute( "font-family", description.fontFamily );
-  // fontFaceEl.setAttribute( "font-style", description.fontStyle );
-  // fontFaceEl.setAttribute( "font-variant", description.fontVariant );
-  // fontFaceEl.setAttribute( "font-weight", description.fontWeight );
-  // fontFaceEl.setAttribute( "font-stretch", description.fontStretch );
-  // fontFaceEl.setAttribute( "font-units-per-em", description.unitsPerEm );
-  // fontFaceEl.setAttribute( "ascent", description.ascent );
-  // fontFaceEl.setAttribute( "descent", description.descent );
+  fontFaceEl.setAttribute( "font-style", description.fontStyle );
+  fontFaceEl.setAttribute( "font-size", description.fontSize );
+  fontFaceEl.setAttribute( "font-variant", description.fontVariant );
+  fontFaceEl.setAttribute( "font-weight", description.fontWeight );
+  fontFaceEl.setAttribute( "font-stretch", description.fontStretch );
+  fontFaceEl.setAttribute( "units-per-em", description.unitsPerEm );
+  fontFaceEl.setAttribute( "ascent", description.ascent );
+  fontFaceEl.setAttribute( "descent", description.descent );
 
   fontEl.appendChild( fontFaceEl );
 
@@ -96,8 +98,9 @@ function makeDataURIForFont( description, data ) {
     // .replace(/><\/glyph>/g, "/>")
     // .replace(/><\/missing-glyph>/, "/>")
     // .replace(/><\/font-face>/, "/>");
+
   var utf8Body = unescape( encodeURIComponent( body ) );
-  
+
   var s = '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg">' + utf8Body + '</svg>';
   document.body.appendChild(svgEl);
   return "data:image/svg+xml;base64," + btoa( s );
@@ -113,7 +116,7 @@ function loadFont( fontEl ) {
 
   var description = makeFontDescription( fontFaceEl ),
       data = getFont( description );
-  
+
   var newMissingGlyph = fontEl.querySelector( "missing-glyph" );
   if ( newMissingGlyph ) {
     data.missingGlyph = {
@@ -121,7 +124,7 @@ function loadFont( fontEl ) {
       d: newMissingGlyph.getAttribute("d")
     };
   }
-  
+
   var newUnicodeGlyphs = fontEl.querySelectorAll( "glyph" );
   for ( var i = 0; i < newUnicodeGlyphs.length; i++ ) {
     var glyphEl = newUnicodeGlyphs[ i ];
@@ -153,6 +156,7 @@ function makeFontDescription( fontFaceEl ) {
   var description = {
     fontFamily: fontFaceEl.getAttribute( "font-family" ),
     fontStyle: fontFaceEl.getAttribute( "font-style" ) || "all",
+    fontSize: fontFaceEl.getAttribute( "font-size" ) || "all",
     fontVariant: fontFaceEl.getAttribute( "font-variant" ) || "normal",
     fontWeight: fontFaceEl.getAttribute( "font-weight" ) || "normal",
     fontStretch: fontFaceEl.getAttribute( "font-stretch" ) || "all",
@@ -164,7 +168,7 @@ function makeFontDescription( fontFaceEl ) {
   if ( !description.fontFamily ) {
     throw new Error("font-family not specified");
   }
-  
+
   return description;
 }
 
@@ -174,6 +178,8 @@ function compareFontDescriptions( a, b ) {
   if ( a.fontFamily > b.fontFamily ) return +1;
   if ( a.fontStyle < b.fontStyle ) return -1;
   if ( a.fontStyle > b.fontStyle ) return +1;
+  if ( a.fontSize < b.fontSize ) return -1;
+  if ( a.fontSize > b.fontSize ) return +1;
   if ( a.fontVariant < b.fontVariant ) return -1;
   if ( a.fontVariant > b.fontVariant ) return +1;
   if ( a.fontWeight < b.fontWeight ) return -1;
