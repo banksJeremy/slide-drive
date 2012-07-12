@@ -62,6 +62,7 @@ function makeDataURIForFont( description, data ) {
       fontEl = document.createElementNS( NS_SVG, "font" ),
       fontFaceEl = document.createElementNS( NS_SVG, "font-face" );
 
+  svgEl.style.display = "none";
   svgEl.appendChild( defsEl );
   defsEl.appendChild( fontEl );
 
