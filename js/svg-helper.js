@@ -103,7 +103,6 @@ function makeDataURIForFont( description, data ) {
   var utf8Body = unescape( encodeURIComponent( body ) );
 
   var s = '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg">' + utf8Body + '</svg>';
-  document.body.appendChild(svgEl);
   return "data:image/svg+xml;base64," + btoa( s );
 }
 
@@ -155,7 +154,7 @@ function getFont( description ) {
 // Makes a font description object from a <font-face> element.
 function makeFontDescription( fontFaceEl ) {
   var description = {
-    fontFamily: fontFaceEl.getAttribute( "font-family" ),
+    fontFamily: fontFaceEl.getAttribute( "font-family" ).replace(/ embedded$/, ""),
     fontStyle: fontFaceEl.getAttribute( "font-style" ) || "all",
     fontSize: fontFaceEl.getAttribute( "font-size" ) || "all",
     fontVariant: fontFaceEl.getAttribute( "font-variant" ) || "normal",
