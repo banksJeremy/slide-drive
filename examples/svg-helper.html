@@ -8,14 +8,22 @@
     svg { border: 1px solid black; }
     body { font-family: sans-serif; font-size: 1.5em; }
   </style>
-  <script>document.addEventListener("DOMContentLoaded", function() {
-    [].forEach.call( document.querySelectorAll( "svg font" ), function( fontEl ) {
-      svgFontManager.loadFont( fontEl );
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="external/jquery/jquery-1.7.min.js"><\/script>')</script>
+  <script>jQuery(function($) {
+    $("#loadFonts").click(function() {
+      [].forEach.call( document.querySelectorAll( "svg font" ), function( fontEl ) {
+        svgFontManager.loadFont( fontEl );
+      });
     });
-    [].forEach.call( document.querySelectorAll( "svg" ), function( svgEl ) {
-      svgEl.parentNode.removeChild( svgEl );
+    $("#removeSvgs").click(function() {
+      [].forEach.call( document.querySelectorAll( "svg" ), function( svgEl ) {
+        svgEl.parentNode.removeChild( svgEl );
+      });
     });
-    svgFontManager.writeStyle();
+    $("#writeStyles").click(function() {
+      svgFontManager.writeStyle();
+    });
   });</script>
 </head>
 <body>
@@ -23,13 +31,20 @@
     This document includes one or more embedded SVG documents, defining several custom fonts. These fonts are incomplete: they only define glyphs some characters. There will be multiple definitions of some fonts, each containing a different set of glyphs.
   </p>
   <p>
-    We load the fonts into svgFontManager, which should generate a single definition for each font, containing the union of characters available in the different definitions. After they've been loaded, we remove the SVG elements. If everything works, they won't be necessary anymore.
-  </p>
-  <p>
-    In addition, all of the loaded font data is persisted in the DOM in JSON. If the document is saved, reloaded, and more fonts are loaded, it should work just fine.
+    All of the loaded font data is persisted in the DOM in JSON. If the document is saved, reloaded, and more fonts are loaded, it should work just fine.
   </p>
   <p>
     Each of the following paragraphs should be using a distinct font <s>or style</s>. Each falls back to monospace if a glyph is unavailable.
+  </p>
+  <p>
+    <button id="loadFonts">Load fonts from SVGs</button>
+    <button id="removeSvgs">Remove SVGs</button>
+    <button id="writeStyles">Write style from loaded fonts</button>
+  </p>
+  <p style="font-family: 'Example With A Custom A', monospace;">
+    Example With A Custom A<br>
+    THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG<br>
+    the quick brown fox jumps over the lazy dog</i>
   </p>
   <p style="font-family: 'Arial', monospace;">
     Arial<br>
@@ -2009,5 +2024,12 @@
   </g>
  </g>
 </svg>
+
+<svg><defs>
+  <font>
+    <font-face font-family="Example With A Custom A embedded" />
+    <glyph unicode="A" horiz-adv-x="950" d="M0,0L0,100L100,100L100,200L0,200L0,300L100,300L100,400L200,400L200,500L300,500L300,600L400,600L600,600L600,500L700,500L700,400L800,400L800,300L900,300L900,200L800,200L800,100L900,100L900,0L600,0L600,100L700,100L700,200L800,200L800,300L100,300L100,200L200,200L200,100L300,100L300,0L0,0M300,400L600,400L600,500L300,500L300,400Z" />    
+  </font>
+</defs></svg>
 </body>
 </html>
