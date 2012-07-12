@@ -527,112 +527,6 @@ addEventListener( "DOMContentLoaded", function() {
     }
   }
 
-  // Maps of lowercase known font names to list of fallback fnts.
-  // The system copy will have top priority, followed by the embedded version, then the fallbacks.
-
-  var knownFonts = {
-    // We expect "safer" fonts or metrics-maching fallbacks to be present on ~90%+ of systems.
-    safer: {
-      "arial": [ "Liberation Sans", "Helvetica", "Arimo", "sans-serif" ],
-      "helvetica": [ "Liberation Sans", "Arial", "Arimo", "sans-serif" ],
-      "liberation sans": [ "Helvetica", "Arial", "Arimo", "sans-serif" ],
-      "arimo": [ "Liberation Sans", "Helvetica", "Arial", "sans-serif" ],
-
-      "times new roman": [ "Liberation Serif", "Times", "Tinos", "serif" ],
-      "times": [ "Times New Roman", "Liberation Serif", "Tinos", "serif" ],
-      "liberation serif": [ "Times New Roman", "Times", "Tinos", "serif" ],
-      "tinos": [ "Liberation Serif", "Times New Roman", "Times", "serif" ],
-
-      "courier new": [ "Liberation Mono", "Cousine", "monospace" ],
-      "liberation mono": [ "Courier New", "Cousine", "monospace" ],
-      "cousine": [ "Liberation Mono", "Courier New", "monospace" ],
-
-      "arial black": [ "sans-serif" ],
-
-      "georgia": [ "serif" ],
-
-      "impact": [ "sans-serif" ]
-    },
-
-    unsafe: {
-      "arial narrow": [ "Liberation Sans Narrow", "sans-serif" ],
-      "liberation sans narrow": [ "arial narrow", "sans-serif" ],
-
-      "menlo": [ "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "monospace" ],
-      "dejavu sans mono": [ "Bitstream Vera Sans Mono", "menlo", "monospace" ],
-      "bitstream vera sans mono": [ "DejaVu Sans Mono", "menlo", "monospace" ],
-
-      "courier": [ "monospace" ],
-
-      "consolas": [ "monospace" ],
-
-      "monaco": [ "monospace" ],
-
-      "lucida console": [ "monospace" ]
-    }
-  };
-
-  function makeFontStack( fontName ) {
-    fontName = fontName.replace( / embedded$/, '' );
-
-    var fontKey = fontName.toLowerCase(),
-        fontNames = [ fontName, fontName + " embedded" ];
-
-    if ( fontKey in knownFonts.safer ) {
-      fontNames.push.apply( fontNames, knownFonts.safer[ fontKey ] );
-    } else if ( fontKey in knownFonts.unsafe ) {
-      fontNames.push.apply( fontNames, knownFonts.unsafe[ fontKey ] );
-    }
-
-    return fontNames.join( "," );
-  }
-
-  function makeFontEmbedder ( root ) {
-    var fontEls = $.map( root.querySelectorAll( "font-face" ), function( el ) {
-      el.cloneNode( true );
-    }),
-        fonts = {},
-        i, l;
-
-    for ( i = 0, l = fontEls.length; i < l; ++i ) {
-      var fontEl = fontEls[ i ],
-          key = fontKey( fontEl.getAttribute( "font-family" ),
-                         fontEl.getAttribute( "font-weight" ),
-                         fontEl.getAttribute( "font-style" ) ),
-          unitsPerEm = +(fontEl.getAttribute( "units-per-em" ) || 1000),
-          glyphEls = fontEl.querySelectorAll( "glyph" ),
-          font = fonts[ key ],
-          j, m;
-
-      if ( !font ) {
-        fonts[ key ] = font = {};
-      }
-
-      for ( j = 0, m = glyphEls.length; j < m; ++j ) {
-        font[ glyphEls[ i ].getAttribute( "unicode" ) ] = glyphEls[ i ].getAttribute( "d" );
-      }
-    }
-
-    return embedFonts;
-
-    function fontKey ( family, weight, style ) {
-      return family + "\n" + (weight || "normal") + "\n" + (style || "normal");
-    }
-
-    function embedFonts ( el ) {
-      var family = el.style.fontFamily,
-          weight = el.style.fontWeight,
-          style = el.style.fontStyle,
-          key = fontKey( family, weight, style ),
-          emSize = el.style.fontSize,
-          emSizeUnitless,
-          dummySizeEl = document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
-          text = el.textContent;
-
-      dummySizeEl.style.height = emSize;
-    }
-  }
-
   /* Given the root of a loaded SVG element, proccess it and split into elements for each slide.
      Calls addSlide on each processed slide.
   */
@@ -645,45 +539,23 @@ addEventListener( "DOMContentLoaded", function() {
     // Embedded fonts? Detach before cloning, then re-add to the first slide.
     var i, l, f, d;
 
-    var fontUsage = {},
-        fontUsers = root.querySelectorAll( "[font-family] ");
+    var fontUsers = root.querySelectorAll( "[font-family] ");
 
     for ( i = 0, l = fontUsers.length; i < l; ++i ) {
       var element = fontUsers[ i ],
           fontFamily = element.getAttribute( "font-family" );
 
-      if ( element.nodeName === "font-face" ) {
-        // If the embedded fonts use the same name as built-in fonts, they will replace them
-        // everywhere in the document, not just inside the SVG. Since these embedded fonts
-        // don't look as good as the native ones, we need to make sure they keep the
-        // "embedded" sufix.
-        continue;
-      }
-
       fontFamily = fontFamily.replace( / embedded$/, '' ).toLowerCase();
 
-      if ( !(fontFamily in fontUsage) ) {
-        fontUsage[ fontFamily ] = [ element ];
-      } else {
-        fontUsage[ fontFamily ].push( element );
-      }
-
-      element.setAttribute( "font-family", makeFontStack( fontFamily ) );
+      element.setAttribute( "font-family", fontFamily );
     }
 
-    // TODO - display this somewhere
-    for ( var name in fontUsage ) {
-      if ( fontUsage.hasOwnProperty( name ) ) {
-        var status;
-        if ( name in knownFonts.safer ) {
-          status = "Safe";
-        } else if ( name in knownFonts.unsafe ) {
-          status = "Known, Unsafe";
-        } else {
-          status = "Unknown, Unsafe";
-        }
-      }
-    }
+    $( "font", root ).each(function() {
+      svgFontManager.loadFont( this );
+    });
+    svgFontManager.writeStyle();
+
+    $( "font, font-face, missing-glyph, glyph", root ).remove();
 
     var svgSlideSubtrees = root.querySelectorAll( ".Slide" ),
         svgSlideIds = $.map( svgSlideSubtrees, function( el ) {
@@ -728,12 +600,6 @@ addEventListener( "DOMContentLoaded", function() {
 
       var svgSlideId = svgSlideIds[ i ],
           svgSlide = root.cloneNode( true );
-
-      // We only want embedded fonts to be included in the first slide, because from there it will be
-      // usable from the others, so we remove them from the root after the first slide is cloned.
-      if ( i === 0 ) {
-        $( "font, font-face, missing-glyph", root ).remove();
-      }
 
       var j, candidate, cruftsAndSlide = svgSlide.querySelectorAll( ".libreoffice-slide" );
 

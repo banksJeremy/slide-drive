@@ -154,7 +154,7 @@ function getFont( description ) {
 // Makes a font description object from a <font-face> element.
 function makeFontDescription( fontFaceEl ) {
   var description = {
-    fontFamily: fontFaceEl.getAttribute( "font-family" ).replace(/ embedded$/, ""),
+    fontFamily: fontFaceEl.getAttribute( "font-family" ),
     fontStyle: fontFaceEl.getAttribute( "font-style" ) || "all",
     fontSize: fontFaceEl.getAttribute( "font-size" ) || "all",
     fontVariant: fontFaceEl.getAttribute( "font-variant" ) || "normal",
