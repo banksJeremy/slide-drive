@@ -24,7 +24,7 @@ function SVGHelper( svgEl ) {
 // not be created again if it already exists, so this may be used to obtain a
 // reference to it.
 SVGHelper.prototype.wrapper = function() {
-  if (this.svgEl.parentNode && this.svgEl.classList.contains( "SVGHelper-wrapper" )) {
+  if (this.svgEl.parentNode && this.svgEl.parentNode.classList.contains( "SVGHelper-wrapper" )) {
     return this.svgEl.parentNode;
   }
 
@@ -96,7 +96,7 @@ SVGHelper.prototype.extractFonts = function() {
 SVGHelper.prototype.joinAdjacentTextEls = function() {
   var i, j, k, l, m, n;
 
-  var textEls = [].slice.call( this.rootEl.querySelectorAll( "text" ) );
+  var textEls = [].slice.call( this.svgEl.querySelectorAll( "text" ) );
 
   for ( i = 0, l = textEls.length; i < l; ++i ) {
     var firstEl = textEls[ i ],
@@ -124,7 +124,9 @@ SVGHelper.prototype.joinAdjacentTextEls = function() {
 
         newContainer.appendChild( newEl );
 
-        oldEl !== firstEl && oldEl.parentNode.removeChild( oldEl );
+        if ( oldEl !== firstEl ) {
+          oldEl.parentNode.removeChild( oldEl );
+        }
 
         for ( k = 0, n = oldElAttributes.length; k < n; ++k ) {
           var oldElAttr = oldElAttributes.item( k );
@@ -186,7 +188,18 @@ SVGHelper.prototype.fixXlinkAttrSerialization = function() {
     return this;
   }
 
-  throw "TODO";
+  // TODO: Currently only looks at <image>s, ignoring <a> and others.
+
+  var images = this.svgEl.querySelectorAll( "image" ), i, l, el;
+
+  for( i = 0, l = images.length; i < l; i++ ) {
+    el = images[ i ];
+
+    var href = el.getAttribute( "xlink:href" );
+
+    el.removeAttribute( "xlink:href" );
+    el.setAttribute( "xlink:href", href );
+  }
 
   return this;
 };
@@ -198,7 +211,50 @@ SVGHelper.prototype.fixTextSelection = function() {
     return this;
   }
 
-  throw "TODO";
+  var markerContainer = document.createElement( "div" ),
+      wrapper = this.wrapper();
+  markerContainer.classList.add( "SVGHelper-selectable-text-container" );
+  markerContainer.classList.add( "data-butter-exclude" );
+
+  var i, l, el, textEls = this.svgEl.querySelectorAll( "text" );
+
+  this._addViewportLocatorsFor( textEls );
+  
+  for ( i = 0, l = textEls.length; i < l; ++i ) {
+    el = textEls[ i ];
+
+    var bbox = this._getProportionalBBoxOf( el );
+
+    var marker = document.createElement( "span" );
+    marker.textContent = el.textContent;
+
+    marker.classList.add( "SVGHelper-selectable-text-overlay" );
+    marker.style.position = "absolute";
+    marker.style.top = bbox.y * 100 + "%";
+    marker.style.left = bbox.x * 100 + "%";
+    marker.style.width = bbox.width ? (bbox.width * 100 + "%") : "1px";
+    marker.style.height = bbox.height ? (bbox.height * 100 + "%") : "1px";
+    marker.style.cursor = "text";
+    marker.style.overflow = "hidden";
+    marker.style.textAlign = "center";
+    marker.style.whiteSpace = "pre";
+    marker.style.color = "rgba(0,0,0,0.0)";
+    marker.zIndex = 10;
+
+    marker.style.opacity = 0.5;
+
+    // We size our characters based on the current pixel size of the originals.
+    // If the SVG is resized, this may become inaccurate. If this value is too
+    // small then the entire character may not be appear to be selected. If it
+    // is too large then the selection may exclude the last character.
+    marker.style.fontSize = bbox.height * wrapper.clientHeight + "px";
+
+    markerContainer.appendChild( marker );
+  }
+
+  this._removeViewportLocators();
+
+  wrapper.appendChild( markerContainer );
 
   return this;
 };
@@ -208,44 +264,147 @@ SVGHelper.prototype.fixTextSelection = function() {
 // This will almost certainly produce inaccurate results unless viewport
 //  locators have been added for childEl, see ._addViewportLocatorsFor().
 SVGHelper.prototype._getProportionalBBoxOf = function( childEl ) {
-  throw "TODO";
-  return this;
+  // Get the bounding box of a child element within the SVG svgEl.
+  // Values are represented as fractions of width/height.
+
+  var bBoxes = [],
+      current = childEl,
+      nativeBBox;
+
+  while ( true ) {
+    nativeBBox = (current.querySelector( ".SVGHelper-viewportLocator" ) || current).getBBox();
+
+    if ( current !== this.svgEl ) {
+      bBoxes.push({
+        x: nativeBBox.x,
+        y: nativeBBox.y,
+        innerWidth: nativeBBox.width,
+        outerWidth: nativeBBox.width,
+        innerHeight: nativeBBox.height,
+        outerHeight: nativeBBox.height
+      });
+    } else {
+      bBoxes.push({
+        x: 0,
+        y: 0,
+        innerWidth: nativeBBox.width,
+        outerWidth: 1,
+        innerHeight: nativeBBox.height,
+        outerHeight: 1
+      });
+
+      break;
+    }
+
+    current = current.viewportElement;
+
+    if ( !current ) {
+      throw new Error( "Element must be descendant of SVG svgEl." );
+    }
+  }
+
+  bBoxes.reverse();
+
+  var i, l,
+      totalBox = {
+        x: 0,
+        y: 0,
+        outerWidth: 1,
+        innerWidth: 1,
+        outerHeight: 1,
+        innerHeight: 1
+      };
+
+  for ( i = 0, l = bBoxes.length; i < l; i++ ) {
+    current = bBoxes[ i ];
+
+    totalBox.x += totalBox.outerWidth * current.x / totalBox.innerWidth;
+    totalBox.y += totalBox.outerHeight * current.y / totalBox.innerHeight;
+
+    totalBox.outerWidth *= current.outerWidth / totalBox.innerWidth;
+    totalBox.outerHeight *= current.outerHeight / totalBox.innerHeight;
+
+    totalBox.innerWidth = current.innerWidth;
+    totalBox.innerHeight = current.innerHeight;
+  }
+
+  return {
+    x: totalBox.x,
+    y: totalBox.y,
+    width: totalBox.outerWidth,
+    height: totalBox.outerHeight
+  };
 };
 
 // Adds the viewport locators (currently invisible <rects> padded to the
 // dimensions of each viewport ancestor but this may change) required to
 // ._getProportionalBBoxOf() of all childEls. Calling this multiple times
 // has no effect.
-SVGHelper.prototype._addViewportLocatorsFor = function( /* childEls... */ ) {
-  throw "TODO";
-  
+SVGHelper.prototype._addViewportLocatorsFor = function( childEls ) {
+  var viewPorts = [];
+
+  // TODO: be more efficient. Stop searching up as soon as there's an
+  // already-locatored viewPort, etc.
+
+  var i, l, e, parentView;
+  for ( i = 0, l = childEls.length; i < l; ++i ) {
+    for ( parentView = childEls[ i ].viewportElement; parentView; parentView = parentView.viewportElement ) {
+      if ( viewPorts.indexOf( parentView ) === -1 ) {
+        viewPorts.push( parentView );
+      }
+    }
+  }
+
+  for ( i = 0, l = viewPorts.length; i < l; ++i ) {
+    e = viewPorts[ i ];
+
+    if ( !e.querySelector( ".SVGHelper-viewportLocator" ) ) {
+      var filler = document.createElementNS( NS_SVG, "rect" );
+      filler.setAttribute( "class", "SVGHelper-viewportLocator" );
+      filler.setAttribute( "x", 0 );
+      filler.setAttribute( "y", 0 );
+      filler.setAttribute( "width", "100%" );
+      filler.setAttribute( "height", "100%" );
+      filler.setAttribute( "fill", "none" );
+      filler.setAttribute( "stroke", "none" );
+      e.appendChild( filler );
+    }
+  }
+
   return this;
 };
 
 // Removes all viewport locators from the SVG.
 SVGHelper.prototype._removeViewportLocators = function() {
-  throw "TODO";
+  var locatorEls = this.svgEl.querySelectorAll( ".SVGHelper-viewportLocator" ), i, l, el;
+  for ( i = 0, l = locatorEls.length; i < l; ++i ) {
+    el = locatorEls[ i ];
+    el.parentNode.removeChild( el );
+  }
+
   return this;
 };
 
 // Reduces the size of the SVG without affecting functionality.
 // (Removes empty <def></def> elements and any whitespace nodes that aren't
 // inside of <text>.)
-SVGHelper.prototype.minify = function() {
-  var children = [].slice.apply(node.childNodes), i, l, node;
+SVGHelper.prototype.minify = function( fromEl ) {
+  fromEl = fromEl || this.svgEl;
+
+  var children = [].slice.apply( fromEl.childNodes ), i, l;
   for ( i = 0, l = children.length; i < l; ++i )  {
-    stripSVGCruft( children[ i ] );
+    this.minify( children[ i ] );
   }
 
-  if ( node.nodeType === Node.TEXT_NODE
-       && node.parentNode.nodeName !== "tspan"
-       && node.parentNode.nodeName !== "text" ) {
-    if ( /^\s*$/.test( node.textContent ) ) {
-      node.parentNode.removeChild( node )
+  if ( fromEl.nodeType === Node.TEXT_NODE
+       && fromEl.parentNode.nodeName !== "tspan"
+       && fromEl.parentNode.nodeName !== "text" ) {
+    if ( /^\s*$/.test( fromEl.textContent ) ) {
+      fromEl.parentNode.removeChild( fromEl );
     }
-  } else if ( node.nodeType === Node.ELEMENT_NODE ) {
-    if ( node.nodeName === "defs" && node.childNodes.length === 0 ) {
-      node.parentNode.removeChild( node )
+  } else if ( fromEl.nodeType === Node.ELEMENT_NODE ) {
+    if ( fromEl.nodeName === "defs" && fromEl.childNodes.length === 0 ) {
+      fromEl.parentNode.removeChild( fromEl );
     }
   }
 
@@ -335,7 +494,7 @@ fontManager.loadFont = function( fontEl, fontFamily ) {
   var fontFaceEl = fontEl.querySelector( "font-face" );
 
   if ( !fontFaceEl ) {
-    throw new Error( "No <font-face /> found in font." )
+    throw new Error( "No <font-face /> found in font." );
   }
 
   var description = this._makeFontDescription( fontFaceEl );
@@ -366,7 +525,7 @@ fontManager.loadFont = function( fontEl, fontFamily ) {
   }
 
   return this;
-}
+};
 
 // Adds or updates a <style> element with declarations for the loaded fonts.
 // If this element is found with teh document is loaded then fontManager will
@@ -405,7 +564,7 @@ fontManager.writeFonts = function() {
   }).join( "\n" );
 
   return this;
-}
+};
 
 // Produces a base64-encoded data URI containing an SVG font with the given description and data.
 fontManager._makeDataURIForFont = function( description, glyphs ) {
@@ -453,7 +612,7 @@ fontManager._makeDataURIForFont = function( description, glyphs ) {
       s = '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg">' + utf8Body + '</svg>';
 
   return "data:image/svg+xml;base64," + btoa( s );
-}
+};
 
 // Retreives the font glyphs given a font's description.
 fontManager._getGylphs = function( description ) {
@@ -469,7 +628,7 @@ fontManager._getGylphs = function( description ) {
   this._fontData.push([ description, fontGlyphs ]);
   this._fontData.sort( this._compareFontDescriptions );
   return fontGlyphs;
-}
+};
 
 // Makes a font description object from a <font-face> element.
 fontManager._makeFontDescription = function( fontFaceEl ) {
@@ -490,7 +649,7 @@ fontManager._makeFontDescription = function( fontFaceEl ) {
   }
 
   return description;
-}
+};
 
 // Compares font descriptions, for equality or sorting. (Though sort order isn't significant.)
 fontManager._compareFontDescriptions = function( a, b ) {
@@ -513,7 +672,7 @@ fontManager._compareFontDescriptions = function( a, b ) {
   if ( a.descent < b.descent ) return -1;
   if ( a.descent > b.descent ) return +1;
   return 0;
-}
+};
 
 // Returns the greatest common denominator of two integers.
 var _gcd = function( a, b ) {
@@ -530,11 +689,11 @@ var _gcd = function( a, b ) {
   }
   while ( true ) {
     a %= b;
-    if ( a == 0 ) {
+    if ( a === 0 ) {
       return b;
     }
     b %= a;
-    if (b == 0) {
+    if (b === 0) {
       return a;
     }
   }

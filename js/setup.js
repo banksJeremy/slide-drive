@@ -465,7 +465,7 @@ addEventListener( "DOMContentLoaded", function() {
   var svgsRequireRescaling = debounce(function() {
     var svgs = document.querySelectorAll("svg"), i, l;
     for ( i = 0, l = svgs.length; i < l; ++i ) {
-      SVGContainer( svgs[ i ] ).fit( document.querySelector( ".deck-container" ) );
+      SVGHelper( svgs[ i ] ).fitIn( document.querySelector( ".deck-container" ) );
     }
   }, 200);
 
@@ -550,10 +550,11 @@ addEventListener( "DOMContentLoaded", function() {
       element.setAttribute( "font-family", fontFamily );
     }
 
+    // TODO use extractFonts
     $( "font", root ).each(function() {
-      svgFontManager.loadFont( this );
+      SVGHelper.fontManager.loadFont( this );
     });
-    svgFontManager.writeStyle();
+    SVGHelper.fontManager.writeFonts();
 
     $( "font, font-face, missing-glyph, glyph", root ).remove();
 
@@ -642,12 +643,11 @@ addEventListener( "DOMContentLoaded", function() {
 
       // Need to do this after adding to document or overlaySelectableSpans's
       // will get confused about the geometry.
-      var svgContainerEl = SVGContainer( svgSlide )
-        .padTextViewports()
-        .overlaySelectableSpans() // fix text selection in Firefox
+      var SVGHelperEl = SVGHelper( svgSlide )
+        .fixTextSelection() // fix text selection in Firefox
         .joinAdjacentTextEls() // fix text selection in Chrome
-        .fixXlinkAttrs() // fix serialization in Chrome
-        // .scaleTo( "height" )
+        .fixXlinkAttrSerialization() // fix serialization in Chrome
+        .minify()
         .containerEl;
 
       svgsRequireRescaling();
@@ -853,11 +853,10 @@ addEventListener( "DOMContentLoaded", function() {
     $(".com\\.sun\\.star\\.drawing\\.LineShape mask").remove();
     
     for ( i = 0, l = svgs.length; i < l; ++i ) {
-      SVGContainer( svgs[ i ] )
-        .padTextViewports()
-        .overlaySelectableSpans() // fix text selection in Firefox
+      SVGHelper( svgs[ i ] )
+        .fixTextSelection() // fix text selection in Firefox
         .joinAdjacentTextEls() // fix text selection in Chrome
-        .fixXlinkAttrs(); // fix serialization in Chrome
+        .fixXlinkAttrSerialization(); // fix serialization in Chrome
     }
   }
 
