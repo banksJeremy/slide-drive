@@ -13,7 +13,7 @@
   <script>jQuery(function($) {
     $("#loadFonts").click(function() {
       [].forEach.call( document.querySelectorAll( "svg font" ), function( fontEl ) {
-        svgFontManager.loadFont( fontEl );
+        SVGHelper.fontManager.loadFont( fontEl );
       });
     });
     $("#removeSvgs").click(function() {
@@ -22,16 +22,19 @@
       });
     });
     $("#writeStyles").click(function() {
-      svgFontManager.writeStyle();
+      SVGHelper.fontManager.writeFonts();
+    });
+    $("#reloadStyles").click(function() {
+      SVGHelper.fontManager._reload();
     });
   });</script>
 </head>
 <body>
   <p>
-    This document includes one or more embedded SVG documents, defining several custom fonts. These fonts are incomplete: they only define glyphs some characters. There will be multiple definitions of some fonts, each containing a different set of glyphs.
+    This document includes one or more SVG documents, defining several custom fonts. These fonts are incomplete: they only define glyphs some characters. There will be multiple definitions of some fonts, each containing a different set of glyphs.
   </p>
   <p>
-    All of the loaded font data is persisted in the DOM in JSON. If the document is saved, reloaded, and more fonts are loaded, it should work just fine.
+    All of the loaded font data is persisted in the DOM. If the document is saved, reloaded, and more fonts are loaded, it should work just fine.
   </p>
   <p>
     Each of the following paragraphs should be using a distinct font <s>or style</s>. Each falls back to monospace if a glyph is unavailable.
@@ -40,6 +43,7 @@
     <button id="loadFonts">Load fonts from SVGs</button>
     <button id="removeSvgs">Remove SVGs</button>
     <button id="writeStyles">Write style from loaded fonts</button>
+    <button id="reloadStyles">_reload</button>
   </p>
   <p style="font-family: 'Example With A Custom A', monospace;">
     Example With A Custom A<br>
@@ -79,7 +83,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="497" d="M 175,1308 L 85,1308 85,1493 270,1493 270,1323 C 270,1234 260,1170 238,1131 209,1077 162,1037 100,1010 L 57,1081 C 96,1098 125,1124 144,1160 163,1196 173,1245 175,1308 Z M 474,1308 L 384,1308 384,1493 569,1493 569,1323 C 569,1234 558,1170 537,1131 507,1077 461,1037 398,1010 L 356,1081 C 394,1098 423,1124 442,1160 461,1196 472,1245 474,1308 Z"/>
    <glyph unicode="~" horiz-adv-x="1033" d="M 85,555 L 85,754 C 156,839 249,882 364,882 404,882 446,876 490,865 534,854 597,832 678,799 724,780 758,768 781,762 804,757 828,754 851,754 895,754 939,766 986,790 1032,815 1073,845 1109,882 L 1109,683 C 1067,638 1023,605 980,585 936,565 887,555 832,555 792,555 754,559 717,568 681,577 623,598 544,632 465,666 399,683 347,683 304,683 264,674 226,657 188,640 141,605 85,555 Z"/>
@@ -176,7 +180,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -184,7 +188,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -212,7 +216,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -221,7 +225,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -230,7 +234,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -242,7 +246,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="Arial embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="Arial" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="13015" y="9675">A</text>
       <text x="13485" y="9675">r</text>
@@ -389,7 +393,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="x" horiz-adv-x="993" d="M 240,0 L 14,0 410,540 43,1067 265,1067 439,818 C 471,772 499,731 524,695 551,732 577,767 602,801 L 796,1067 1022,1067 634,538 1010,0 788,0 561,324 521,383 240,0 Z"/>
    <glyph unicode="v" horiz-adv-x="973" d="M 624,0 L 419,0 28,1067 225,1067 451,428 C 476,359 498,287 519,213 535,269 558,337 586,416 L 813,1067 1010,1067 624,0 Z"/>
@@ -419,7 +423,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="Arial Black embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2262" descent="635"/>
+   <font-face font-family="Arial Black" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2262" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="913" d="M 57,1081 L 57,1493 498,1493 498,1155 C 498,1030 472,932 420,859 368,786 280,723 154,668 L 57,846 C 136,882 191,918 220,954 250,990 267,1032 270,1081 L 57,1081 Z M 569,1081 L 569,1493 1010,1493 1010,1155 C 1010,1030 984,932 932,859 880,786 792,723 666,668 L 569,846 C 648,882 703,918 732,954 762,990 779,1032 782,1081 L 569,1081 Z"/>
    <glyph unicode="~" horiz-adv-x="1152" d="M 1252,981 L 1252,654 C 1175,592 1112,550 1065,529 1017,508 968,498 917,498 878,498 839,503 800,514 761,526 700,552 616,593 533,634 467,654 419,654 316,654 209,602 100,498 L 100,825 C 162,881 220,922 274,946 329,969 388,981 452,981 485,981 519,976 556,966 592,956 645,934 715,901 785,867 834,846 864,838 893,829 921,825 947,825 1037,825 1138,877 1252,981 Z"/>
@@ -516,7 +520,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -524,7 +528,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_4" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -552,7 +556,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -561,7 +565,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -570,7 +574,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -582,7 +586,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="Arial Black embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="Arial Black" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="11607" y="9285">A</text>
       <text x="12157" y="9285">r</text>
@@ -735,7 +739,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="x" horiz-adv-x="993" d="M 240,0 L 14,0 410,540 43,1067 265,1067 439,818 C 471,772 499,731 524,695 551,732 577,767 602,801 L 796,1067 1022,1067 634,538 1010,0 788,0 561,324 521,383 240,0 Z"/>
    <glyph unicode="v" horiz-adv-x="973" d="M 624,0 L 419,0 28,1067 225,1067 451,428 C 476,359 498,287 519,213 535,269 558,337 586,416 L 813,1067 1010,1067 624,0 Z"/>
@@ -765,7 +769,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="DejaVu Sans Light embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1905" descent="476"/>
+   <font-face font-family="DejaVu Sans Light" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1905" descent="476"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="577" d="M 274,1342 L 274,1493 375,1493 375,1342 296,1022 234,1022 274,1342 Z M 686,1342 L 686,1493 788,1493 788,1342 708,1022 646,1022 686,1342 Z"/>
    <glyph unicode="~" horiz-adv-x="1291" d="M 1499,782 L 1499,685 C 1429,632 1364,595 1304,572 1245,549 1183,538 1118,538 1055,538 970,558 862,597 855,600 849,602 846,603 841,605 834,608 824,611 721,652 638,673 575,673 516,673 458,660 401,634 344,609 282,568 217,513 L 217,610 C 287,663 352,701 412,724 471,747 533,758 598,758 669,758 755,738 855,698 862,695 867,693 870,692 875,690 883,687 892,684 995,643 1078,622 1141,622 1198,622 1255,635 1312,660 1368,685 1430,726 1499,782 Z"/>
@@ -862,7 +866,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -870,7 +874,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_4" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -898,7 +902,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -907,7 +911,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -916,7 +920,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -928,7 +932,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="DejaVu Sans Light embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="DejaVu Sans Light" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="10562" y="9607">D</text>
       <text x="11104" y="9607">e</text>
@@ -1087,7 +1091,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="x" horiz-adv-x="993" d="M 240,0 L 14,0 410,540 43,1067 265,1067 439,818 C 471,772 499,731 524,695 551,732 577,767 602,801 L 796,1067 1022,1067 634,538 1010,0 788,0 561,324 521,383 240,0 Z"/>
    <glyph unicode="v" horiz-adv-x="973" d="M 624,0 L 419,0 28,1067 225,1067 451,428 C 476,359 498,287 519,213 535,269 558,337 586,416 L 813,1067 1010,1067 624,0 Z"/>
@@ -1117,7 +1121,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="Lucida Blackletter embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2163" descent="437"/>
+   <font-face font-family="Lucida Blackletter" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2163" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="616" d="M 688,1749 C 760,1679 796,1598 796,1506 796,1405 753,1297 665,1182 L 555,1138 C 612,1214 640,1296 640,1383 640,1461 607,1526 540,1577 600,1613 649,1671 688,1749 Z M 333,1749 C 405,1679 441,1598 441,1506 441,1405 397,1297 310,1182 L 199,1138 C 256,1214 284,1296 284,1383 284,1461 251,1526 185,1577 244,1613 294,1671 333,1749 Z"/>
    <glyph unicode="~" horiz-adv-x="1093" d="M 142,441 L 85,441 C 91,543 117,623 163,681 209,739 268,768 342,768 394,768 481,740 603,683 L 727,626 C 829,578 904,555 952,555 1027,555 1079,612 1109,725 L 1166,725 C 1144,517 1057,412 904,412 841,412 756,437 649,487 L 526,544 C 411,598 335,626 297,626 221,626 170,564 142,441 Z"/>
@@ -1214,7 +1218,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -1222,7 +1226,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_4" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -1250,7 +1254,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -1259,7 +1263,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -1268,7 +1272,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -1280,7 +1284,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="Lucida Blackletter embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="Lucida Blackletter" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="10900" y="9506">L</text>
       <text x="11353" y="9506">u</text>
@@ -1440,7 +1444,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="x" horiz-adv-x="993" d="M 240,0 L 14,0 410,540 43,1067 265,1067 439,818 C 471,772 499,731 524,695 551,732 577,767 602,801 L 796,1067 1022,1067 634,538 1010,0 788,0 561,324 521,383 240,0 Z"/>
    <glyph unicode="v" horiz-adv-x="973" d="M 624,0 L 419,0 28,1067 225,1067 451,428 C 476,359 498,287 519,213 535,269 558,337 586,416 L 813,1067 1010,1067 624,0 Z"/>
@@ -1470,7 +1474,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="Lucida Handwriting embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2103" descent="734"/>
+   <font-face font-family="Lucida Handwriting" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2103" descent="734"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="894" d="M 754,1272 C 774,1267 791,1265 805,1265 850,1265 888,1285 920,1324 951,1364 967,1413 967,1470 967,1553 929,1622 853,1678 923,1725 985,1749 1042,1749 1134,1749 1180,1696 1180,1590 1180,1488 1144,1391 1071,1301 998,1211 920,1166 837,1166 790,1166 762,1201 754,1272 Z M 299,1272 C 319,1268 336,1266 351,1266 395,1266 433,1286 465,1325 496,1365 512,1413 512,1469 512,1552 474,1621 398,1678 468,1725 531,1749 587,1749 679,1749 725,1696 725,1590 725,1487 689,1391 616,1301 543,1211 465,1166 382,1166 336,1166 308,1201 299,1272 Z"/>
    <glyph unicode="~" horiz-adv-x="1073" d="M 370,412 C 303,431 270,471 270,533 270,592 299,646 355,695 412,744 475,768 544,768 598,768 676,740 778,684 L 858,642 C 964,584 1041,555 1087,555 1197,555 1252,621 1252,754 1318,730 1351,690 1351,633 1351,572 1322,517 1264,470 1205,422 1139,398 1064,398 994,398 902,430 788,493 L 691,546 C 611,590 554,612 519,612 477,612 442,595 413,562 383,529 369,489 369,442 369,435 369,425 370,412 Z"/>
@@ -1542,7 +1546,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -1550,7 +1554,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_4" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -1578,7 +1582,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -1587,7 +1591,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -1596,7 +1600,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -1608,7 +1612,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="Lucida Handwriting embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="Lucida Handwriting" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="7346" y="9780">l</text>
       <text x="7634" y="9780">u</text>
@@ -1736,7 +1740,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_1" horiz-adv-x="2048">
-   <font-face font-family="Arial embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
+   <font-face font-family="Arial" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1845" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="x" horiz-adv-x="993" d="M 240,0 L 14,0 410,540 43,1067 265,1067 439,818 C 471,772 499,731 524,695 551,732 577,767 602,801 L 796,1067 1022,1067 634,538 1010,0 788,0 561,324 521,383 240,0 Z"/>
    <glyph unicode="v" horiz-adv-x="973" d="M 624,0 L 419,0 28,1067 225,1067 451,428 C 476,359 498,287 519,213 535,269 558,337 586,416 L 813,1067 1010,1067 624,0 Z"/>
@@ -1766,7 +1770,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_2" horiz-adv-x="2048">
-   <font-face font-family="Lucida Handwriting embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2103" descent="734"/>
+   <font-face font-family="Lucida Handwriting" units-per-em="2048" font-weight="normal" font-style="normal" ascent="2103" descent="734"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="”" horiz-adv-x="894" d="M 754,1272 C 774,1267 791,1265 805,1265 850,1265 888,1285 920,1324 951,1364 967,1413 967,1470 967,1553 929,1622 853,1678 923,1725 985,1749 1042,1749 1134,1749 1180,1696 1180,1590 1180,1488 1144,1391 1071,1301 998,1211 920,1166 837,1166 790,1166 762,1201 754,1272 Z M 299,1272 C 319,1268 336,1266 351,1266 395,1266 433,1286 465,1325 496,1365 512,1413 512,1469 512,1552 474,1621 398,1678 468,1725 531,1749 587,1749 679,1749 725,1696 725,1590 725,1487 689,1391 616,1301 543,1211 465,1166 382,1166 336,1166 308,1201 299,1272 Z"/>
    <glyph unicode="~" horiz-adv-x="1073" d="M 370,412 C 303,431 270,471 270,533 270,592 299,646 355,695 412,744 475,768 544,768 598,768 676,740 778,684 L 858,642 C 964,584 1041,555 1087,555 1197,555 1252,621 1252,754 1318,730 1351,690 1351,633 1351,572 1322,517 1264,470 1205,422 1139,398 1064,398 994,398 902,430 788,493 L 691,546 C 611,590 554,612 519,612 477,612 442,595 413,562 383,529 369,489 369,442 369,435 369,425 370,412 Z"/>
@@ -1838,7 +1842,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_3" horiz-adv-x="2048">
-   <font-face font-family="StarSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
+   <font-face font-family="StarSymbol" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1885" descent="635"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="●" horiz-adv-x="1192" d="M 816,0 C 636,0 493,53 387,160 281,267 228,410 228,590 228,770 281,914 387,1020 493,1127 636,1180 816,1180 995,1180 1138,1127 1246,1020 1354,913 1408,770 1408,590 1408,411 1354,268 1246,160 1138,53 995,0 816,0 Z"/>
    <glyph unicode="–" horiz-adv-x="1152" d="M -4,597 L -4,455 1135,455 1135,597 -4,597 Z"/>
@@ -1846,7 +1850,7 @@
  </defs>
  <defs>
   <font id="EmbeddedFont_4" horiz-adv-x="2048">
-   <font-face font-family="Times New Roman embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
+   <font-face font-family="Times New Roman" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1826" descent="437"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="s" horiz-adv-x="616" d="M 626,953 L 654,953 654,640 626,640 C 601,734 569,797 530,831 491,865 441,882 381,882 335,882 298,870 270,845 242,821 228,794 228,765 228,728 237,696 254,670 272,643 312,615 376,584 L 522,515 C 658,448 725,361 725,252 725,168 693,100 629,49 565,-3 494,-28 414,-28 358,-28 293,-18 219,4 197,11 179,14 165,14 149,14 137,0 128,-28 L 100,-28 100,284 128,284 C 147,204 184,144 239,104 293,63 354,43 422,43 469,43 508,56 538,83 568,111 583,143 583,182 583,228 566,267 533,298 500,330 435,369 338,415 240,462 176,504 146,543 115,581 100,629 100,687 100,763 126,826 178,877 230,928 297,953 379,953 415,953 459,944 511,927 545,916 568,910 580,910 590,910 599,913 605,918 611,923 618,935 626,953 Z"/>
    <glyph unicode="r" horiz-adv-x="656" d="M 286,953 L 327,953 327,723 C 402,876 479,953 558,953 594,953 624,940 647,916 671,891 683,862 683,829 683,800 675,776 659,755 643,735 624,725 603,725 581,725 556,740 527,768 497,796 475,811 461,811 449,811 436,803 422,789 391,759 360,709 327,641 L 327,213 C 327,162 333,124 346,98 354,80 369,64 391,50 412,35 443,28 484,28 L 484,0 14,0 14,28 C 60,28 95,36 117,52 133,64 145,82 152,108 155,120 156,155 156,213 L 156,569 C 156,679 154,745 150,766 146,787 139,802 128,811 118,821 104,826 88,826 69,826 48,821 24,811 L 14,839 286,953 Z"/>
@@ -1874,7 +1878,7 @@
    <g visibility="visible" class="Date/Time">
     <g>
      <rect fill="none" stroke="none" x="1400" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="1400" y="19571"/></g>
      </g>
@@ -1883,7 +1887,7 @@
    <g visibility="visible" class="Footer">
     <g>
      <rect fill="none" stroke="none" x="9576" y="19131" width="8876" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="12107" y="19571"/></g>
      </g>
@@ -1892,7 +1896,7 @@
    <g visibility="hidden" class="Slide_Number">
     <g>
      <rect fill="none" stroke="none" x="20076" y="19131" width="6524" height="1449"/>
-     <g font-family="Times New Roman embedded" font-size="493px" font-style="normal" font-weight="400">
+     <g font-family="Times New Roman" font-size="493px" font-style="normal" font-weight="400">
       <g fill="rgb(0,0,0)" stroke="none">
        <text class="PlaceholderText" x="22786" y="19571"/></g>
      </g>
@@ -1904,7 +1908,7 @@
   <g class="com.sun.star.presentation.SubtitleShape">
    <g>
     <rect fill="none" stroke="none" x="1400" y="4914" width="24640" height="12180"/>
-    <g font-family="Lucida Handwriting embedded" font-size="706px" font-style="normal" font-weight="400">
+    <g font-family="Lucida Handwriting" font-size="706px" font-style="normal" font-weight="400">
      <g fill="rgb(0,0,0)" stroke="none">
       <text x="6493" y="9780">L</text>
       <text x="6925" y="9780">U</text>
@@ -2027,7 +2031,7 @@
 
 <svg><defs>
   <font>
-    <font-face font-family="Example With A Custom A embedded" />
+    <font-face font-family="Example With A Custom A" />
     <glyph unicode="A" horiz-adv-x="950" d="M0,0L0,100L100,100L100,200L0,200L0,300L100,300L100,400L200,400L200,500L300,500L300,600L400,600L600,600L600,500L700,500L700,400L800,400L800,300L900,300L900,200L800,200L800,100L900,100L900,0L600,0L600,100L700,100L700,200L800,200L800,300L100,300L100,200L200,200L200,100L300,100L300,0L0,0M300,400L600,400L600,500L300,500L300,400Z" />    
   </font>
 </defs></svg>
