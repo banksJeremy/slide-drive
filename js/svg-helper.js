@@ -417,10 +417,22 @@ SVGHelper.prototype.minify = function( fromEl ) {
 // We do not use .getComputedStyle because the SVG is not required to be
 // attached to the document.
 SVGHelper.prototype.removeInvisibles = function() {
-  throw "TODO";
+  
 
   return this;
 };
+
+// Removes invisible elements in the subtree rooted at the specified element.
+// Returns true of the specified element should itself be removed, false if it
+// should not.
+SVGHelper.prototype._removeInvisiblesFrom = function( fromEl ) {
+  throw "TODO";
+//  The element itself deserves to be invisible only if it has display none, or if it has
+//  visibility hidden and none of its children have visiblity shown. So I guess this
+// function can return three states
+  
+//  "visible", "invisible", "specifically-invisible"
+}
 
 // Specifies which SVG features require workarounds in the current browser.
 SVGHelper._requiredWorkarounds = {};
@@ -517,15 +529,105 @@ fontManager.loadFont = function( fontEl, fontFamily ) {
 
   var newUnicodeGlyphs = fontEl.querySelectorAll( "glyph" );
   for ( var i = 0; i < newUnicodeGlyphs.length; i++ ) {
-    var glyphEl = newUnicodeGlyphs[ i ];
-    data.unicodeGlyphs[ glyphEl.getAttribute( "unicode" ) ] = {
+    var glyphEl = newUnicodeGlyphs[ i ],
+        glyphData = {
       horizAdvX: glyphEl.getAttribute( "horiz-adv-x" ),
-      d: glyphEl.getAttribute( "d" )
+      d: glyphEl.getAttribute( "d" ) || ""
     };
+    
+    glyphData.outlineDetails = this._parseSVGPath( glyphData );
+    console.log( glyphData.outlineDetails );
+
+    data.unicodeGlyphs[ glyphEl.getAttribute( "unicode" ) ] = glyphData;
   }
 
   return this;
 };
+
+
+var SVG_FONT_COMMAND_PARAMETER_COUNT = {
+  m: 2, // moveto, relative
+  M: 2, // moveto, absolute
+  z: 0, // closepath
+  Z: 0, // closepath
+  l: 2, // lineto, relative
+  L: 2, // lineto, absolute
+  h: 1, // horizontal lineto, relative
+  H: 1, // horizontal lineto, absolute
+  v: 1, // vertical lineto, relative
+  V: 1, // vertical lineto, absolute
+  c: 6, // cubic bézier curveto, relative
+  C: 6, // cubic bézier curveto, absolute
+  s: 4, // smooth cubic bézier curveto, relative
+  S: 4, // smooth cubic bézier curveto, absolute
+  q: 4, // quadratic bézier curveto, relative
+  Q: 4, // quadratic bézier curveto, absolute
+  t: 2, // smooth quadratic bézier curveto, relative
+  T: 2, // smooth quadratic bézier curveto, absolute
+  a: 8, // elliptical arc, relative
+  A: 8  // elliptical arc, absolute
+}
+
+// Converts an SVG path string into a series of command objects
+// including their arguments. This doesn't interpret them at all.
+fontManager._parseSVGPath = function( glyph ) {
+  var pathDataPieces = glyph.d.match( /[a-z]|[\+\-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:e[\+\-][0-9]+)?/ig ),
+      pathCommands = [],
+
+      i, l, piece,
+      j, requiredArgs, args, arg,
+      command = null;
+
+  if ( pathDataPieces ) {
+    pathDataPieces = pathDataPieces.map(function( piece ) {
+      if ( piece.match( /^[a-z]$/i ) ) {
+        return piece; // command
+      } else {
+        return +piece; // argument, numeric
+      }
+    });
+  } else {
+    return [];
+  }
+
+  for ( i = 0, l = pathDataPieces.length; i < l; ) {
+    piece = pathDataPieces[ i ];
+    
+    if ( typeof piece === "string" ) {
+      command = piece;
+      i++;
+    } else {
+      if ( !command ) {
+        throw new Error( "Argument " + piece + " specified before any command." );
+      }
+    }
+    
+    requiredArgs = SVG_FONT_COMMAND_PARAMETER_COUNT[ command ];
+    
+    if ( requiredArgs == null ) {
+      throw new Error( "Unknown command in path: " + command )
+    }
+
+    args = [];
+
+    for ( j = 0; j < requiredArgs; ++j ) {
+      arg = pathDataPieces[ i ];
+      if ( typeof arg !== "number" ) {
+        throw new Error( "Expected argument for command " + command + ", got " + arg + "." );
+      }
+      i++;
+      
+      args.push( arg );
+    }
+
+    pathCommands.push({
+      comand: command,
+      args: args
+    });
+  }
+
+  return pathCommands;
+}
 
 // Adds or updates a <style> element with declarations for the loaded fonts.
 // If this element is found with teh document is loaded then fontManager will
@@ -547,6 +649,9 @@ fontManager.writeFonts = function() {
   var this_ = this;
   styleEl.textContent = this._fontData.map(function( description_glyphs ) {
     var description = description_glyphs[0], glyphs = description_glyphs[1];
+    
+    var svgFont = this_.makeSVG( description, glyphs ),
+        svgFontDataUri = "data:image/svg+xml;base64," + btoa( svgFont );
 
     return "@font-face {\n" +
       "  font-family: \"" + description.fontFamily + "\";\n" +
@@ -559,15 +664,15 @@ fontManager.writeFonts = function() {
       (description.ascent ? "  ascent: " + description.ascent + ";\n" : "") +
       (description.descent ? "  descent: " + description.descent + ";\n" : "") +
       "  src: local(\"" + description.fontFamily + "\"),\n" +
-      "       url(\"" + this_._makeDataURIForFont( description, glyphs ) + "\") format(\"svg\");\n" +
+      "       url(\"" + svgFontDataUri + "\") format(\"svg\");\n" +
     " }";
   }).join( "\n" );
 
   return this;
 };
 
-// Produces a base64-encoded data URI containing an SVG font with the given description and data.
-fontManager._makeDataURIForFont = function( description, glyphs ) {
+// Generates an SVG font file for the given font, as a binary string.
+fontManager.makeSVG = function( description, glyphs ) {
   var svgEl = document.createElement( "svg" ),
       defsEl = document.createElementNS( NS_SVG, "defs" ),
       fontEl = document.createElementNS( NS_SVG, "font" ),
@@ -611,8 +716,143 @@ fontManager._makeDataURIForFont = function( description, glyphs ) {
       utf8Body = unescape( encodeURIComponent( body ) ),
       s = '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg">' + utf8Body + '</svg>';
 
-  return "data:image/svg+xml;base64," + btoa( s );
+  return s;
 };
+
+// Generates a WOFF font file for the given font, as a binary string.
+fontManager._makeWOFF = function( description, glyphs ) {
+  var fontTables = [];
+  
+  fontTables.push({
+    tag: "cmap",
+    data: [
+      encodeUint16( 0 ), // cmap table version
+      encodeUint16( 1 ), // number of encoding tables
+      
+      encodeUint16( 3 ), // platform ID for windows
+      encodeUint16( 0 ), // encoding ID for "Byte encoding table"
+      encodeUint32( 10 ), // offset to subtable of data (below) from start of table
+      
+      encodeUint16( 0 ), // format 0
+      encodeUint16( 262 ), // length of this subtable
+      encodeUint16( 0 ), // languge, N/A
+      BYTE_VALUES
+    ].join( "" );
+  });
+
+  fontTables.push({
+    tag: "head",
+    data: [
+      "\x00\x01\x00\x00", // table version number
+      "\x00\x00\x00\x00", // font revision,
+      "????",             // Checksum adjustment
+      "\x5F\x0F\x3C\xF5", // magic number
+      "\x00\x00\x00\x00", // flags
+      encodeUint16( description.unitsPerEm ),
+      encodeUint32( 0 ), // creation date
+      encodeUint32( 0 ), // modified date
+      encodeUint16( TODO ), // x-min for all glyphs (signed!)
+      encodeUint16( TODO ), // y-min for all glyphs (signed!)
+      encodeUint16( TODO ), // x-max for all glyphs (signed!)
+      encodeUint16( TODO ), // y-min for all glyphs (signed!)
+      encodeUint16(
+        description.fontWeight === "bold" ? 1 << 15 : 0
+      + description.fontStyle === "italic" ? 1 << 14 : 0
+      + description.fontStretch === "condensed" ? 1 << 10 : 0
+      ), // font style flags
+      encodeUint16( 0 ), // minimum size in pixels
+      encodeUint16( 2 ), // fontDirectionHint deprecated, (signed!)
+      encodeUint16( 0 ), // indexToLocFormat
+      encodeUint16( 0 ) // reserved
+    ].join( "" );
+  });
+
+  fontTables.push({
+    tag: "OS/2",
+    data: [
+      encodeUint16( 4 ), // version
+      encodeUint16( TODO ), // average width of non-zero-width glyphs
+      encodeUint16( description.fontWeight === "bold" ? 700 : 500 ),
+      encodeUint16( description.fontStretch === "condensed" ? 3 : 5 ),
+      encodeUint16( 0 ), // licensing restrictions
+      encodeUint16( 0 ), // ySubscriptXSize - we're neglecting this
+      encodeUint16( 0 ), // ySubscriptYSize - we're neglecting this
+      encodeUint16( 0 ), // ySubscriptXOffset - we're neglecting this
+      encodeUint16( 0 ), // ySubscriptYOffset - we're neglecting this
+      encodeUint16( 0 ), // ySuperscriptXSize - we're neglecting this
+      encodeUint16( 0 ), // ySuperscriptYSize - we're neglecting this
+      encodeUint16( 0 ), // ySuperscriptXOffset - we're neglecting this
+      encodeUint16( 0 ), // ySuperscriptYOffset - we're neglecting this
+      encodeUint16( 0 ), // yStrikeoutSize - we're neglecting this
+      encodeUint16( 0 ), // yStrikeoutPosition - we're neglecting this
+      encodeUint16( 0 ), // no font family class
+      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", // Panose classification
+      "\xC0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", // supported chars
+      "\x00\x00\x00\x00", // vendor ID
+      encodeUint16(
+        description.fontWeight === "bold" ? 1 << 15 : 0
+      + description.fontStyle === "italic" ? 1 << 10 : 0
+      ),
+      encodeUint16( 0 ), // first supported char
+      encodeUint16( 255 ), // last supported char
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      "\xC0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      encodeUint16( 0 ),
+      encodeUint16( 0 )
+    ].join( "" )
+  })
+
+
+  return _makeWoffFromFontTables( fontTables );
+}
+
+/*
+http://people.mozilla.com/~jkew/woff/woff-spec-latest.html
+https://developer.apple.com/fonts/tools/tooldir/TrueEdit/Documentation/TE/TE1sfnt.html
+http://www.microsoft.com/typography/otspec/otff.htm
+
+For now, we're just going to use the "byte encoding table", which can only encode
+characters up to 0xFF. After this is working we may implement something more flexible.
+
+*/
+
+fontManager._makeWoffFromFontTables = function( fontTables ) {
+  var dataPieces = [], // all pieces of the file excluding headers
+      i, l;
+
+
+
+  var totalLength = 44; // header size
+  for ( i = 0, l = dataPieces.length; i < l; ++i ) {
+    totalLength += dataPieces[ i ].length;
+  }
+
+  var headerPieces = [
+    "wOFF",             // WOFF Signature
+    "\x00\x01\x00\x00", // TrueType-flavoured
+    encodeUint32( totalLength ),
+    encodeUint16( fontTables.length ),
+    "\x00\x00",         // Reserved
+    "????",             // Total size needed for the uncompressed font data, including the sfnt header, directory, and tables.
+    "\x00\x00",         // Major version
+    "\x00\x00",         // Minor version
+    "\x00\x00\x00\x00", // No metadata block
+    "\x00\x00\x00\x00", // No metadata block
+    "\x00\x00\x00\x00", // No metadata block
+    "\x00\x00\x00\x00", // No private data block
+    "\x00\x00\x00\x00"  // No private data block
+  ],
+      pieces = headerPieces.concat( dataPieces ),
+      s = pieces.join( "" ); 
+
+  return s;
+}
 
 // Retreives the font glyphs given a font's description.
 fontManager._getGylphs = function( description ) {
@@ -672,6 +912,41 @@ fontManager._compareFontDescriptions = function( a, b ) {
   if ( a.descent < b.descent ) return -1;
   if ( a.descent > b.descent ) return +1;
   return 0;
+};
+
+var BYTE_VALUES = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" +
+                  "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F" +
+                  "\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F" +
+                  "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F" +
+                  "\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F" +
+                  "\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F" +
+                  "\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F" +
+                  "\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F" +
+                  "\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F" +
+                  "\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F" +
+                  "\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF" +
+                  "\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF" +
+                  "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF" +
+                  "\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF" +
+                  "\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF" +
+                  "\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF";
+
+// Encodes a number as a big-endian 16-bit unsigned integer.
+var encodeUint16 = function( n ) {
+  return String.fromCharCode(
+    (n >> 8) & 255,
+    n & 255
+  );
+};
+
+// Encodes a number as a big-endian 32-bit unsigned integer.
+var encodeUint32 = function( n ) {
+  return String.fromCharCode(
+    (n >> 24) & 255,
+    (n >> 16) & 255,
+    (n >> 8) & 255,
+    n & 255
+  );
 };
 
 // Returns the greatest common denominator of two integers.
