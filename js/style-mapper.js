@@ -1,24 +1,8 @@
 /*
-  A StyleMapper is initialized with a list describing which properties of which selectors should
-  be copied to which properties of which selectors, and a document fragment which contains
-  instances of each of the original selectors.
-  
-  The issue: hard-coded style properties on the target elements.
-  I need to force them to be removed.
-  Maybe this is too-specialized.
-  
-  CSS styles will apply to SVG elements, at a higher priority than style attributes on parents.
-  So it isn't even neccessary to replace the style attributes!?
-  This may be noteworthy. Fiddled: http://jsfiddle.net/WudjH/
-  Apparently CSS always takes precedence over styling attributes (because they're considered a
-  type of default user agent style, I am guessing), so we're fine, as long as we understand that
-  our "default"s aren't actually defaults, but whatever was set in the stylesheet..
-  
-  document.querySelector("link[href^='/external/deckjs/themes/style/']").href = [
-    "/external/deckjs/themes/style/neon.css",
-    "/external/deckjs/themes/style/web-2.0.css",
-    "/external/deckjs/themes/style/swiss.css",
-  ][(Math.random() * 3) | 0];
+  A StyleMapper is initialized with a list describing which properties
+  of which selectors should be copied to which properties of which
+  selectors, and an element containing children that satisfy each of
+  the original selectors.
 */
 
 function StyleMapper( styleMap, sampleEl ) {
@@ -81,7 +65,7 @@ StyleMapper.prototype._makeStyle = function() {
       stylePieces.push( "}" );
     }
     
-    stylePieces.push("");
+    stylePieces.push( "" );
   }
   
   document.body.removeChild( sampleElContainer );
@@ -99,8 +83,8 @@ var deckSvgStyleMapper = new StyleMapper({
     }
   },
   ".deck-container .slide h1": {
-    ".deck-container .slide .com\\.sun\\.star\\.presentation\\.TitleTextShape": {
-      "color": "color",
+    ".deck-container .slide svg .com\\.sun\\.star\\.presentation\\.TitleTextShape text": {
+      "color": "fill",
       "font-style": "font-style"
     }
   }
@@ -116,12 +100,16 @@ window.addEventListener( "load", function() {
   deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
 }, false);
 
+var _styleIndex = 0, _styleCount = 3;
 setInterval(function() {
   console.log("Randomizing and re-mapping styles");
+  _styleIndex = (_styleIndex + 1) % _styleCount;
   document.querySelector("link[href^='/external/deckjs/themes/style/']").href = [
     "/external/deckjs/themes/style/neon.css",
     "/external/deckjs/themes/style/web-2.0.css",
-    "/external/deckjs/themes/style/swiss.css",
-  ][(Math.random() * 3) | 0];
-  deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
+    "/external/deckjs/themes/style/swiss.css"
+  ][_styleIndex];
+  setTimeout(function() {
+    deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
+  }, 100)
 }, 2000);
