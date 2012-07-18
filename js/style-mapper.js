@@ -1,0 +1,127 @@
+/*
+  A StyleMapper is initialized with a list describing which properties of which selectors should
+  be copied to which properties of which selectors, and a document fragment which contains
+  instances of each of the original selectors.
+  
+  The issue: hard-coded style properties on the target elements.
+  I need to force them to be removed.
+  Maybe this is too-specialized.
+  
+  CSS styles will apply to SVG elements, at a higher priority than style attributes on parents.
+  So it isn't even neccessary to replace the style attributes!?
+  This may be noteworthy. Fiddled: http://jsfiddle.net/WudjH/
+  Apparently CSS always takes precedence over styling attributes (because they're considered a
+  type of default user agent style, I am guessing), so we're fine, as long as we understand that
+  our "default"s aren't actually defaults, but whatever was set in the stylesheet..
+  
+  document.querySelector("link[href^='/external/deckjs/themes/style/']").href = [
+    "/external/deckjs/themes/style/neon.css",
+    "/external/deckjs/themes/style/web-2.0.css",
+    "/external/deckjs/themes/style/swiss.css",
+  ][(Math.random() * 3) | 0];
+*/
+
+function StyleMapper( styleMap, sampleEl ) {
+  this.styleMap = styleMap;
+  this.sampleEl = sampleEl;
+}
+
+StyleMapper.prototype.update = function( styleId ) {
+  var styleEl = document.getElementById( styleId );
+  if ( !styleEl ) {
+    styleEl = document.createElement( "style" );
+    styleEl.id = styleId;
+    document.head.appendChild( styleEl );
+  }
+
+  styleEl.textContent = "";
+  var style = this._makeStyle();
+  styleEl.textContent = style;
+};
+
+StyleMapper.prototype._makeStyle = function() {
+  var i, l,
+      sampleElContainer = document.createElement( "div" ),
+      sourceSampleEl, sourceSampleStyle, samplePropertyValue,
+      sourceSelector, targetSelector, sourceProperty, targetProperty,
+      stylePieces = [];
+
+  sampleElContainer.appendChild( this.sampleEl );
+  document.body.appendChild( sampleElContainer );
+  
+  for ( sourceSelector in this.styleMap ) {
+    if ( !this.styleMap.hasOwnProperty( sourceSelector ) ) continue;
+    
+    sourceSampleEl = sampleElContainer.querySelector( sourceSelector );
+    if ( !sourceSampleEl ) {
+      throw new Error( "No sample element matching selector: " + sourceSelector );
+    }
+    sourceSampleStyle = getComputedStyle( sourceSampleEl );
+    
+    stylePieces.push( "/* styles from " + sourceSelector + " */" );
+    
+    for ( targetSelector in this.styleMap[ sourceSelector ] ) {
+      if ( !this.styleMap[ sourceSelector ].hasOwnProperty( targetSelector ) ) continue;
+      
+      stylePieces.push( targetSelector + " {" )
+      
+      for ( sourceProperty in this.styleMap[ sourceSelector ][ targetSelector ] ) {
+        if ( !this.styleMap[ sourceSelector ][ targetSelector ].hasOwnProperty( sourceProperty ) ) continue;
+        
+        targetProperty = this.styleMap[ sourceSelector ][ targetSelector ][ sourceProperty ];
+        samplePropertyValue = sourceSampleStyle[ sourceProperty ];
+        
+        if ( samplePropertyValue ) {
+          stylePieces.push( "  " + targetProperty + ": " + samplePropertyValue + ";" );
+        } else {
+          console.warn( "No value for property " + sourceProperty + " of " + sourceSelector + " to copy to " + targetProperty + " of " + targetSelector + "." );
+        }
+      }
+      
+      stylePieces.push( "}" );
+    }
+    
+    stylePieces.push("");
+  }
+  
+  document.body.removeChild( sampleElContainer );
+  
+  return stylePieces.join( "\n" );
+};
+
+var deckSvgStyleMapper = new StyleMapper({
+  ".deck-container": {
+    ".deck-container .slide svg": {
+      "background-color": "fill"
+    },
+    ".deck-container .slide svg text": {
+      "color": "fill"
+    }
+  },
+  ".deck-container .slide h1": {
+    ".deck-container .slide .com\\.sun\\.star\\.presentation\\.TitleTextShape": {
+      "color": "color",
+      "font-style": "font-style"
+    }
+  }
+},
+$("<div class=deck-container>").append(
+  $("<div class=slide>").append(
+    $("<h1>")
+  )
+)[0]);
+
+window.addEventListener( "load", function() {
+  console.log( "Initializing style map." );
+  deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
+}, false);
+
+setInterval(function() {
+  console.log("Randomizing and re-mapping styles");
+  document.querySelector("link[href^='/external/deckjs/themes/style/']").href = [
+    "/external/deckjs/themes/style/neon.css",
+    "/external/deckjs/themes/style/web-2.0.css",
+    "/external/deckjs/themes/style/swiss.css",
+  ][(Math.random() * 3) | 0];
+  deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
+}, 2000);

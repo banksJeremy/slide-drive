@@ -442,7 +442,7 @@ tmp.innerHTML = "<svg><image xlink:href=\"about:blank\"></image></svg>";
 
 SVGHelper._requiredWorkarounds.xlinkAttrSerialization = !/xlink:href/.test( tmp.innerHTML );
 
-SVGHelper._requiredWorkarounds.textSelection = !/Gecko[\/]/.test( navigator.userAgent );
+SVGHelper._requiredWorkarounds.textSelection = /Gecko[\/]/.test( navigator.userAgent );
 
 /*
 http://www.w3.org/TR/SVG/fonts.html
@@ -536,7 +536,6 @@ fontManager.loadFont = function( fontEl, fontFamily ) {
     };
     
     glyphData.outlineDetails = this._parseSVGPath( glyphData );
-    console.log( glyphData.outlineDetails );
 
     data.unicodeGlyphs[ glyphEl.getAttribute( "unicode" ) ] = glyphData;
   }
@@ -719,141 +718,6 @@ fontManager.makeSVG = function( description, glyphs ) {
   return s;
 };
 
-// Generates a WOFF font file for the given font, as a binary string.
-fontManager._makeWOFF = function( description, glyphs ) {
-  var fontTables = [];
-  
-  fontTables.push({
-    tag: "cmap",
-    data: [
-      encodeUint16( 0 ), // cmap table version
-      encodeUint16( 1 ), // number of encoding tables
-      
-      encodeUint16( 3 ), // platform ID for windows
-      encodeUint16( 0 ), // encoding ID for "Byte encoding table"
-      encodeUint32( 10 ), // offset to subtable of data (below) from start of table
-      
-      encodeUint16( 0 ), // format 0
-      encodeUint16( 262 ), // length of this subtable
-      encodeUint16( 0 ), // languge, N/A
-      BYTE_VALUES
-    ].join( "" );
-  });
-
-  fontTables.push({
-    tag: "head",
-    data: [
-      "\x00\x01\x00\x00", // table version number
-      "\x00\x00\x00\x00", // font revision,
-      "????",             // Checksum adjustment
-      "\x5F\x0F\x3C\xF5", // magic number
-      "\x00\x00\x00\x00", // flags
-      encodeUint16( description.unitsPerEm ),
-      encodeUint32( 0 ), // creation date
-      encodeUint32( 0 ), // modified date
-      encodeUint16( TODO ), // x-min for all glyphs (signed!)
-      encodeUint16( TODO ), // y-min for all glyphs (signed!)
-      encodeUint16( TODO ), // x-max for all glyphs (signed!)
-      encodeUint16( TODO ), // y-min for all glyphs (signed!)
-      encodeUint16(
-        description.fontWeight === "bold" ? 1 << 15 : 0
-      + description.fontStyle === "italic" ? 1 << 14 : 0
-      + description.fontStretch === "condensed" ? 1 << 10 : 0
-      ), // font style flags
-      encodeUint16( 0 ), // minimum size in pixels
-      encodeUint16( 2 ), // fontDirectionHint deprecated, (signed!)
-      encodeUint16( 0 ), // indexToLocFormat
-      encodeUint16( 0 ) // reserved
-    ].join( "" );
-  });
-
-  fontTables.push({
-    tag: "OS/2",
-    data: [
-      encodeUint16( 4 ), // version
-      encodeUint16( TODO ), // average width of non-zero-width glyphs
-      encodeUint16( description.fontWeight === "bold" ? 700 : 500 ),
-      encodeUint16( description.fontStretch === "condensed" ? 3 : 5 ),
-      encodeUint16( 0 ), // licensing restrictions
-      encodeUint16( 0 ), // ySubscriptXSize - we're neglecting this
-      encodeUint16( 0 ), // ySubscriptYSize - we're neglecting this
-      encodeUint16( 0 ), // ySubscriptXOffset - we're neglecting this
-      encodeUint16( 0 ), // ySubscriptYOffset - we're neglecting this
-      encodeUint16( 0 ), // ySuperscriptXSize - we're neglecting this
-      encodeUint16( 0 ), // ySuperscriptYSize - we're neglecting this
-      encodeUint16( 0 ), // ySuperscriptXOffset - we're neglecting this
-      encodeUint16( 0 ), // ySuperscriptYOffset - we're neglecting this
-      encodeUint16( 0 ), // yStrikeoutSize - we're neglecting this
-      encodeUint16( 0 ), // yStrikeoutPosition - we're neglecting this
-      encodeUint16( 0 ), // no font family class
-      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", // Panose classification
-      "\xC0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", // supported chars
-      "\x00\x00\x00\x00", // vendor ID
-      encodeUint16(
-        description.fontWeight === "bold" ? 1 << 15 : 0
-      + description.fontStyle === "italic" ? 1 << 10 : 0
-      ),
-      encodeUint16( 0 ), // first supported char
-      encodeUint16( 255 ), // last supported char
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      "\xC0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      encodeUint16( 0 ),
-      encodeUint16( 0 )
-    ].join( "" )
-  })
-
-
-  return _makeWoffFromFontTables( fontTables );
-}
-
-/*
-http://people.mozilla.com/~jkew/woff/woff-spec-latest.html
-https://developer.apple.com/fonts/tools/tooldir/TrueEdit/Documentation/TE/TE1sfnt.html
-http://www.microsoft.com/typography/otspec/otff.htm
-
-For now, we're just going to use the "byte encoding table", which can only encode
-characters up to 0xFF. After this is working we may implement something more flexible.
-
-*/
-
-fontManager._makeWoffFromFontTables = function( fontTables ) {
-  var dataPieces = [], // all pieces of the file excluding headers
-      i, l;
-
-
-
-  var totalLength = 44; // header size
-  for ( i = 0, l = dataPieces.length; i < l; ++i ) {
-    totalLength += dataPieces[ i ].length;
-  }
-
-  var headerPieces = [
-    "wOFF",             // WOFF Signature
-    "\x00\x01\x00\x00", // TrueType-flavoured
-    encodeUint32( totalLength ),
-    encodeUint16( fontTables.length ),
-    "\x00\x00",         // Reserved
-    "????",             // Total size needed for the uncompressed font data, including the sfnt header, directory, and tables.
-    "\x00\x00",         // Major version
-    "\x00\x00",         // Minor version
-    "\x00\x00\x00\x00", // No metadata block
-    "\x00\x00\x00\x00", // No metadata block
-    "\x00\x00\x00\x00", // No metadata block
-    "\x00\x00\x00\x00", // No private data block
-    "\x00\x00\x00\x00"  // No private data block
-  ],
-      pieces = headerPieces.concat( dataPieces ),
-      s = pieces.join( "" ); 
-
-  return s;
-}
-
 // Retreives the font glyphs given a font's description.
 fontManager._getGylphs = function( description ) {
   for (var i = 0 ; i < this._fontData.length; i++) {
@@ -912,41 +776,6 @@ fontManager._compareFontDescriptions = function( a, b ) {
   if ( a.descent < b.descent ) return -1;
   if ( a.descent > b.descent ) return +1;
   return 0;
-};
-
-var BYTE_VALUES = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" +
-                  "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F" +
-                  "\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F" +
-                  "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F" +
-                  "\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F" +
-                  "\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F" +
-                  "\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F" +
-                  "\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F" +
-                  "\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F" +
-                  "\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F" +
-                  "\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF" +
-                  "\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF" +
-                  "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF" +
-                  "\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF" +
-                  "\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF" +
-                  "\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF";
-
-// Encodes a number as a big-endian 16-bit unsigned integer.
-var encodeUint16 = function( n ) {
-  return String.fromCharCode(
-    (n >> 8) & 255,
-    n & 255
-  );
-};
-
-// Encodes a number as a big-endian 32-bit unsigned integer.
-var encodeUint32 = function( n ) {
-  return String.fromCharCode(
-    (n >> 24) & 255,
-    (n >> 16) & 255,
-    (n >> 8) & 255,
-    n & 255
-  );
 };
 
 // Returns the greatest common denominator of two integers.
