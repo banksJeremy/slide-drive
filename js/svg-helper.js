@@ -343,31 +343,22 @@ SVGHelper.prototype._getProportionalBBoxOf = function( childEl ) {
 SVGHelper.prototype._addViewportLocatorsFor = function( childEls ) {
   var viewPorts = [];
 
-  // TODO: be more efficient. Stop searching up as soon as there's an
-  // already-locatored viewPort, etc.
-
-  var i, l, e, parentView;
+  var i, l, e, viewPort;
   for ( i = 0, l = childEls.length; i < l; ++i ) {
-    for ( parentView = childEls[ i ].viewportElement; parentView; parentView = parentView.viewportElement ) {
-      if ( viewPorts.indexOf( parentView ) === -1 ) {
-        viewPorts.push( parentView );
+    for ( viewPort = childEls[ i ].viewportElement; viewPort; viewPort = viewPort.viewportElement ) {
+      if ( !viewPort.querySelector( ".SVGHelper-viewportLocator" ) ) {
+        var filler = document.createElementNS( NS_SVG, "rect" );
+        filler.setAttribute( "class", "SVGHelper-viewportLocator" );
+        filler.setAttribute( "x", 0 );
+        filler.setAttribute( "y", 0 );
+        filler.setAttribute( "width", "100%" );
+        filler.setAttribute( "height", "100%" );
+        filler.setAttribute( "fill", "none" );
+        filler.setAttribute( "stroke", "none" );
+        viewPort.appendChild( filler );
+      } else {
+        break;
       }
-    }
-  }
-
-  for ( i = 0, l = viewPorts.length; i < l; ++i ) {
-    e = viewPorts[ i ];
-
-    if ( !e.querySelector( ".SVGHelper-viewportLocator" ) ) {
-      var filler = document.createElementNS( NS_SVG, "rect" );
-      filler.setAttribute( "class", "SVGHelper-viewportLocator" );
-      filler.setAttribute( "x", 0 );
-      filler.setAttribute( "y", 0 );
-      filler.setAttribute( "width", "100%" );
-      filler.setAttribute( "height", "100%" );
-      filler.setAttribute( "fill", "none" );
-      filler.setAttribute( "stroke", "none" );
-      e.appendChild( filler );
     }
   }
 
