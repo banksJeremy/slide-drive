@@ -584,9 +584,9 @@ addEventListener( "DOMContentLoaded", function() {
       // console.log( indentation + ")")
     }( " ", possibleSubslides ));
     */
-    
-    stripSVGCruft( root );
-    
+
+    SVGHelper( root ).removeInvisibles().minify();
+
     var slides = document.querySelectorAll( ".deck-container .slide" );
 
     var cumulativeDuration = (slides[ slides.length - 1 ] && slides[ slides.length - 1 ].getAttribute( "data-popcorn-slideshow" ) || 0) + 3;
@@ -610,18 +610,9 @@ addEventListener( "DOMContentLoaded", function() {
         if ( candidate.getAttribute( "id" ) !== svgSlideId ) {
           candidate.parentNode.removeChild( candidate );
         } else {
-          candidate.setAttribute( "visibility", "visibile" );
+          candidate.setAttribute( "visibility", "visible" );
         }
       }
-
-      var hiddenElements = svgSlide.querySelectorAll( "[visible=hidden]" );
-
-      // Remove hidden elements - they're of no interest to us.
-      for ( j = 0; j < hiddenElements.length; j++ ) {
-        hiddenElements[ j ].parentNode.removeChild( hiddenElements[ j ] );
-      }
-
-      stripSVGCruft( svgSlide );
 
       var container = document.querySelector( ".deck-container" );
 
@@ -647,6 +638,7 @@ addEventListener( "DOMContentLoaded", function() {
         .fixTextSelection() // fix text selection in Firefox
         .joinAdjacentTextEls() // fix text selection in Chrome
         .fixXlinkAttrSerialization() // fix serialization in Chrome
+        .removeInvisibles()
         .minify()
         .containerEl;
 
@@ -706,26 +698,6 @@ addEventListener( "DOMContentLoaded", function() {
     }
     
     return rootChildren;
-  }
-
-  // Removes empty <def></def> elements and any whitespace nodes that aren't inside of <text>.
-  function stripSVGCruft( node ) {
-    var children = [].slice.apply(node.childNodes), i, l, node;
-    for ( i = 0, l = children.length; i < l; ++i )  {
-      stripSVGCruft( children[ i ] );
-    }
-
-    if ( node.nodeType === Node.TEXT_NODE
-         && node.parentNode.nodeName !== "tspan"
-         && node.parentNode.nodeName !== "text" ) {
-      if ( /^\s*$/.test(node.textContent) ) {
-        node.parentNode.removeChild( node )
-      }
-    } else if ( node.nodeType === Node.ELEMENT_NODE ) {
-      if ( node.nodeName === "defs" && node.childNodes.length === 0 ) {
-        node.parentNode.removeChild( node )
-      }
-    }
   }
 
   // Returns the "id" attribute value for a given element.

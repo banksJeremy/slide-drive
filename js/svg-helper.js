@@ -417,21 +417,44 @@ SVGHelper.prototype.minify = function( fromEl ) {
 // We do not use .getComputedStyle because the SVG is not required to be
 // attached to the document.
 SVGHelper.prototype.removeInvisibles = function() {
-  
-
+  this._removeInvisibleChildrenAndCheckIfVisible( this.svgEl );
   return this;
 };
 
 // Removes invisible elements in the subtree rooted at the specified element.
-// Returns true of the specified element should itself be removed, false if it
-// should not.
-SVGHelper.prototype._removeInvisiblesFrom = function( fromEl ) {
-  throw "TODO";
-//  The element itself deserves to be invisible only if it has display none, or if it has
-//  visibility hidden and none of its children have visiblity shown. So I guess this
-// function can return three states
-  
-//  "visible", "invisible", "specifically-invisible"
+// If any children are hidden, returns false. If any are visible and have
+// visibility="visible", return true. Otherwise they inherit their visibility,
+// return null.
+SVGHelper.prototype._removeInvisibleChildrenAndCheckIfVisible = function( fromEl ) {
+  if ( fromEl.nodeType !== Node.ELEMENT_NODE ) {
+    return true;
+  }
+
+  var anyVisible = null;
+
+  if ( fromEl.getAttribute( "display" ) === "none" ) {
+    anyVisible = false;
+  } else if ( fromEl.getAttribute( "visibility" ) === "visible" ) {
+    anyVisible = true;
+  }
+
+  var i, l, children = [].slice.apply( fromEl.childNodes ), child, childVisible;
+  for ( i = 0, l = children.length; i < l; ++i ) {
+    child = children[ i ];
+    childVisible = this._removeInvisibleChildrenAndCheckIfVisible( child );
+    if ( childVisible === true ) {
+      if ( anyVisible === null ) {
+        anyVisible = true;
+      }
+    } else if ( childVisible === false ) {
+      fromEl.removeChild( child );
+    }
+  }
+  if ( anyVisible === null && fromEl.getAttribute( "visibility" ) === "hidden" ) {
+    anyVisible = false;
+  }
+
+  return anyVisible;
 }
 
 // Specifies which SVG features require workarounds in the current browser.
@@ -534,99 +557,12 @@ fontManager.loadFont = function( fontEl, fontFamily ) {
       horizAdvX: glyphEl.getAttribute( "horiz-adv-x" ),
       d: glyphEl.getAttribute( "d" ) || ""
     };
-    
-    glyphData.outlineDetails = this._parseSVGPath( glyphData );
 
     data.unicodeGlyphs[ glyphEl.getAttribute( "unicode" ) ] = glyphData;
   }
 
   return this;
 };
-
-
-var SVG_FONT_COMMAND_PARAMETER_COUNT = {
-  m: 2, // moveto, relative
-  M: 2, // moveto, absolute
-  z: 0, // closepath
-  Z: 0, // closepath
-  l: 2, // lineto, relative
-  L: 2, // lineto, absolute
-  h: 1, // horizontal lineto, relative
-  H: 1, // horizontal lineto, absolute
-  v: 1, // vertical lineto, relative
-  V: 1, // vertical lineto, absolute
-  c: 6, // cubic bézier curveto, relative
-  C: 6, // cubic bézier curveto, absolute
-  s: 4, // smooth cubic bézier curveto, relative
-  S: 4, // smooth cubic bézier curveto, absolute
-  q: 4, // quadratic bézier curveto, relative
-  Q: 4, // quadratic bézier curveto, absolute
-  t: 2, // smooth quadratic bézier curveto, relative
-  T: 2, // smooth quadratic bézier curveto, absolute
-  a: 8, // elliptical arc, relative
-  A: 8  // elliptical arc, absolute
-}
-
-// Converts an SVG path string into a series of command objects
-// including their arguments. This doesn't interpret them at all.
-fontManager._parseSVGPath = function( glyph ) {
-  var pathDataPieces = glyph.d.match( /[a-z]|[\+\-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:e[\+\-][0-9]+)?/ig ),
-      pathCommands = [],
-
-      i, l, piece,
-      j, requiredArgs, args, arg,
-      command = null;
-
-  if ( pathDataPieces ) {
-    pathDataPieces = pathDataPieces.map(function( piece ) {
-      if ( piece.match( /^[a-z]$/i ) ) {
-        return piece; // command
-      } else {
-        return +piece; // argument, numeric
-      }
-    });
-  } else {
-    return [];
-  }
-
-  for ( i = 0, l = pathDataPieces.length; i < l; ) {
-    piece = pathDataPieces[ i ];
-    
-    if ( typeof piece === "string" ) {
-      command = piece;
-      i++;
-    } else {
-      if ( !command ) {
-        throw new Error( "Argument " + piece + " specified before any command." );
-      }
-    }
-    
-    requiredArgs = SVG_FONT_COMMAND_PARAMETER_COUNT[ command ];
-    
-    if ( requiredArgs == null ) {
-      throw new Error( "Unknown command in path: " + command )
-    }
-
-    args = [];
-
-    for ( j = 0; j < requiredArgs; ++j ) {
-      arg = pathDataPieces[ i ];
-      if ( typeof arg !== "number" ) {
-        throw new Error( "Expected argument for command " + command + ", got " + arg + "." );
-      }
-      i++;
-      
-      args.push( arg );
-    }
-
-    pathCommands.push({
-      comand: command,
-      args: args
-    });
-  }
-
-  return pathCommands;
-}
 
 // Adds or updates a <style> element with declarations for the loaded fonts.
 // If this element is found with teh document is loaded then fontManager will

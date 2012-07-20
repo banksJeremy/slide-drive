@@ -14,11 +14,10 @@
     }
   </style>
   <script>document.addEventListener( "DOMContentLoaded", function() {
-    SVGContainer( document.getElementById( "svg1" ) )
-      .scaleTo( "width" )
-      .padTextViewports().fixXlinkAttrs().reparse().overlaySelectableSpans() // fix text selection in Firefox
-      .joinAdjacentTextEls().fixXlinkAttrs().reparse() // fix text selection in Chrome
-      .fixXlinkAttrs() // prevent next reparsing from breaking in Chrome
+    SVGHelper( document.getElementById( "svg1" ) )
+      .padTextViewports().fixXlinkAttrs().reparse().overlaySelectableSpans(
+      .joinAdjacentTextEls().fixXlinkAttrs().reparse()
+      .fixXlinkAttrs()
   });</script>
 </head>
 <body>
