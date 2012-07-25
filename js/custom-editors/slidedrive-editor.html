@@ -42,6 +42,7 @@
       #sd_thumbnail_container * {
         background: white;
         height: 92px;
+        margin-bottom: .5em;
       }
       #table {
         clear: both;
@@ -55,17 +56,21 @@
 
         document.addEventListener( "DOMContentLoaded", function( e ){
 
-          function sendData( alsoClose ){
+          function sendData( alsoClose, extraEventData ){
             alsoClose = !!alsoClose;
             var popcornOptions = {};
             for( var item in _manifest ) {
               popcornOptions[ item ] = document.getElementById( item ).value;
             }
             document.getElementById( "message" ).innerHTML = "";
-            _comm.send( "submit", {
+            var eventData = {
               eventData: popcornOptions,
               alsoClose: alsoClose
-            });
+            };
+            for ( var key in extraEventData ) {
+              eventData[ key ] = extraEventData[ key ];
+            }
+            _comm.send( "submit", eventData );
           } //sendData
 
           function okPressed( e ) {
@@ -75,6 +80,14 @@
           function cancelPressed( e ) {
             _comm.send( "cancel" );
           }
+
+          document.getElementById( "save_prev" ).addEventListener( "click", function( e ) {
+            sendData( true, { destination: "prev" } );
+          });
+
+          document.getElementById( "save_next" ).addEventListener( "click", function( e ) {
+            sendData( true, { destination: "next" } );
+          });
 
           document.addEventListener( "keydown", function( e ) {
             if( e.keyCode === 13 && e.target.tagName !== "TEXTAREA" ) {
@@ -121,7 +134,7 @@
             if ( slideSvg ) {
               var clonedSvg = slideSvg.cloneNode( true );
               document.getElementById( "sd_thumbnail_container" ).appendChild( clonedSvg );
-              window.parent.SVGContainer( clonedSvg );
+              window.parent.SVGHelper( clonedSvg ).wrapper();
             }
 
             for( var item in _manifest ) {
@@ -205,6 +218,12 @@
       <div>
         Start, End (seconds): <input id="start" />, <input id="end" />
       </div>
+      <div>
+    		<button style="float: left; margin-left: 1em;"
+    		        id="save_prev">Previous</button>
+    		<button style="float: right; margin-left: 1em;"
+    		        id="save_next">Next</button>
+		  </div>
     </div>
     <div id="sd_constants">
       <div id="sd_thumbnail_container"></div>
