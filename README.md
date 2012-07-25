@@ -35,7 +35,7 @@ Butter requires [Node.js][node.js] v0.6 or higher. You may use your system's cop
 #### Install Butter's dependencies using NPM:
 
     $ nodeenv/bin/npm install external/butter/
-    $ nodeenv/bin/npm install shelljs express stylus mongoose express-browserid
+    $ nodeenv/bin/npm install shelljs express@2 stylus mongoose express-browserid
 
 ### Install and Run MongoDB
 

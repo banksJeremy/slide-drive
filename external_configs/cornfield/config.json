@@ -1,6 +1,6 @@
 {
   "server" : {
-    "bindIP" : "localhost",
+    "bindIP" : "",
     "bindPort" : "8888"
   },
   "logger" : {
