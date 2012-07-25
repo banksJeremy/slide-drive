@@ -112,4 +112,4 @@ setInterval(function() {
   setTimeout(function() {
     deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
   }, 100)
-}, 2000);
+}, 10000);

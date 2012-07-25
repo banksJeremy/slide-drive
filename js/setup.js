@@ -496,7 +496,7 @@ addEventListener( "DOMContentLoaded", function() {
      If they have been then unbind the drop handlers, read the file and continue to handleDroppedSVG.
   */
   function onDroppedFilesOnTrack ( files, track, time ) {
-    var i, l, file, reader;
+    var i, l, file, reader, slidesToPassOver = 0;
 
     for ( i = 0, l = files.length; i < l; ++i ) {
       file = files[ i ];
@@ -518,12 +518,17 @@ addEventListener( "DOMContentLoaded", function() {
       }
 
       var tmpContainer = document.createElement( "div" ),
-          svgRoot;
+          svgRoot,
+          newSlideCount;
 
       tmpContainer.innerHTML = this.result;
       svgRoot = tmpContainer.querySelector( "svg" );
 
-      handleDroppedSVG( svgRoot, track, time );
+      newSlideCount = svgRoot.querySelectorAll( ".Slide" ).length;
+
+      handleDroppedSVG( svgRoot, track, time + 1 * slidesToPassOver );
+
+      slidesToPassOver += newSlideCount;
     }
   }
 
