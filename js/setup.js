@@ -594,7 +594,7 @@ addEventListener( "DOMContentLoaded", function() {
 
     var slides = document.querySelectorAll( ".deck-container .slide" );
 
-    var cumulativeDuration = (slides[ slides.length - 1 ] && slides[ slides.length - 1 ].getAttribute( "data-popcorn-slideshow" ) || 0) + 3;
+    var cumulativeDuration = 0;
 
     i = 0;
     var addSlideInterval = setInterval(function() {
@@ -625,7 +625,13 @@ addEventListener( "DOMContentLoaded", function() {
           transEl = document.createElement( "div" );
 
       slideEl.setAttribute( "class", "slide" );
-      slideEl.setAttribute( "data-popcorn-slideshow", start + i * 1 ); // TODO better start times
+      slideEl.setAttribute( "data-popcorn-slideshow", start + cumulativeDuration );
+      
+      var duration = (popcorn.duration() - start - cumulativeDuration) * .10,
+          popcornOptions = SlideButterOptions( slideEl );
+
+      cumulativeDuration += duration;
+      popcornOptions.end = cumulativeDuration;
 
       transEl.setAttribute( "class", "transcript" );
 
@@ -651,10 +657,8 @@ addEventListener( "DOMContentLoaded", function() {
 
       track.addTrackEvent({
         type: "slidedrive",
-        popcornOptions: SlideButterOptions( slideEl )
+        popcornOptions: popcornOptions
       });
-
-      cumulativeDuration += 5;
 
       initDeck();
 
