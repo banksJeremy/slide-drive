@@ -99,17 +99,3 @@ window.addEventListener( "load", function() {
   console.log( "Initializing style map." );
   deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
 }, false);
-
-var _styleIndex = 0, _styleCount = 3;
-setInterval(function() {
-  console.log("Randomizing and re-mapping styles");
-  _styleIndex = (_styleIndex + 1) % _styleCount;
-  document.querySelector("link[href^='/external/deckjs/themes/style/']").href = [
-    "/external/deckjs/themes/style/neon.css",
-    "/external/deckjs/themes/style/web-2.0.css",
-    "/external/deckjs/themes/style/swiss.css"
-  ][_styleIndex];
-  setTimeout(function() {
-    deckSvgStyleMapper.update( "deck-svg-mapped-styles" );
-  }, 100)
-}, 10000);
