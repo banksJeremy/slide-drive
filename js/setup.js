@@ -235,6 +235,14 @@ addEventListener( "DOMContentLoaded", function() {
 
         renderedContainer.parentNode.replaceChild( containedAudio, renderedContainer );
 
+        // Multiple <sources> may be available for the <audio>, but this is mangled by browsers
+        // promoting their preferred format to the src= of the <audio>. So, we'll remove the src=
+        // attribute if there are <source>s included.
+
+        if ( containedAudio.hasAttribute( "src" ) && containedAudio.querySelector( "source" ) ) {
+          containedAudio.removeAttribute( "src" );
+        }
+
         // We don't want Butter's copy of the popcorn events. They'll have been mirrored
         // back into the DOM, which we'll parse them back out of.
         // This will need a bit more nuance when other Popcorn events can be added.
@@ -502,7 +510,7 @@ addEventListener( "DOMContentLoaded", function() {
       file = files[ i ];
       reader = new FileReader();
 
-      if ( file.type !== "image/svg+xml" ) {
+      if ( file.type !== "image/svg+xml" || file.name.match( /\.svg$/ ) ) {
         continue;
       }
 

@@ -12,7 +12,7 @@ bucket = S3Connection().create_bucket("slide-drive-demo")
 
 print "Loading examples/demo.html"
 
-demo_source = open("examples/demo.html", "rb").read().replace("http://localhost:8888/", "/")
+demo_source = open("examples/demo.html", "rb").read().replace("http://localhost:8888/", "/").replace("http://localhost:28888/", "/")
 
 print "Uploading modified examples/demo.html"
 
@@ -25,6 +25,7 @@ bulk_paths = [
   "js",
   "css",
   "examples/demo-audio.mp3",
+  "examples/demo-audio.ogg",
   "examples/demo-external-page.html",
   "external/deckjs",
   "external/jquery",
@@ -59,5 +60,4 @@ for path in bulk_paths:
   else:
     print "Skipping non-file non-directory", path
 
-
-webbrowser.open("http://slide-drive-demo.s3.amazonaws.com/examples/demo.html")
+# webbrowser.open("http://slide-drive-demo.s3.amazonaws.com/examples/demo.html")
