@@ -1,6 +1,9 @@
 addEventListener( "DOMContentLoaded", function() {
   "use strict";
 
+  var NS_SVG = "http://www.w3.org/2000/svg",
+      NS_XLINK = "http://www.w3.org/1999/xlink";
+
   var printableElement = null,
       showingPrintable = false,
       inButter         = !!window.Butter,
@@ -245,6 +248,7 @@ addEventListener( "DOMContentLoaded", function() {
 
         // We don't want Butter's copy of the popcorn events. They'll have been mirrored
         // back into the DOM, which we'll parse them back out of.
+
         // This will need a bit more nuance when other Popcorn events can be added.
 
         var pageScripts = root.querySelectorAll( "script" ),
@@ -510,7 +514,7 @@ addEventListener( "DOMContentLoaded", function() {
       file = files[ i ];
       reader = new FileReader();
 
-      if ( file.type !== "image/svg+xml" || file.name.match( /\.svg$/ ) ) {
+      if ( file.type !== "image/svg+xml" && !file.name.match( /\.svg$/ ) ) {
         continue;
       }
 
@@ -908,4 +912,22 @@ addEventListener( "DOMContentLoaded", function() {
       elPopcorn.currentTime( popcorn.currentTime() - slideOptions.start );
     }
   }
+
+  window.xlinkify = function xlinkify() {
+    $( "body" ).on( "click", "svg text", linkifyElement );
+
+    function linkifyElement() {
+      $( "body" ).off( "click", "svg text", linkifyElement );
+
+      var href = prompt( "Please enter a URL to link to this text to." );
+
+      if ( href != null ) {
+        var link = document.createElementNS( NS_SVG, "a" );
+        link.setAttributeNS( NS_XLINK, "href", href );
+        link.style.textDecoration = "underline";
+
+        $( this ).wrap( link );
+      }
+    }
+  };
 }, false );
