@@ -103,6 +103,69 @@ body {
   padding: 0 0px;
 }
 
+#sd-editor-controls {
+  position: fixed;
+  right: 8px;
+  top: 40px;
+  padding: 2px;
+  background: white;
+  border-radius: 6px;
+  border: 2px solid black;
+  z-index: 100;
+  text-align: center;
+  opacity: .25;
+  -moz-transition-duration: 0.5s;
+  -moz-transition-property: opacity;
+  -webkit-transition-duration: 0.5s;
+  -webkit-transition-property: opacity;
+}
+
+#sd-editor-controls button {
+  cursor: pointer;
+}
+
+#sd-editor-controls:hover {
+  opacity: 1.0;
+}
+
+.xlinkifying svg text {
+  -moz-animation-duration: 0.25s;
+  -webkit-animation-duration: 0.25s;
+  -moz-animation-name: fade-to-0p5;
+  -webkit-animation-name: fade-to-0p5;
+  -moz-animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+  -moz-animation-direction: alternate;
+  -webkit-animation-direction: alternate;
+  -moz-animation-timing-function: ease-in-out;
+  -webkit-animation-timing-function: ease-in-out;
+  cursor: pointer;
+}
+
+.xlinkifying svg text:hover {
+  text-decoration: underline;
+}
+
+@-webkit-keyframes fade-to-0p5 {
+  from {
+    opacity: 1.0;
+  }
+
+  to {
+    opacity: 0.5;
+  }
+}
+
+@-moz-keyframes fade-to-0p5 {
+  from {
+    opacity: 1.0;
+  }
+
+  to {
+    opacity: 0.5;
+  }
+}
+
 @media screen {
   .print-nav-link {
     z-index: 10;

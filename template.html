@@ -43,7 +43,7 @@
   </style>
 </head>
 
-<body class="project-container" data-butter-crufted>
+<body class="project-container">
   <div id="main" style="height:100%;width:100%;">
     <div class="deck-container">
       <section class="slide" data-popcorn-slideshow="0">
@@ -91,6 +91,14 @@
   </div>
   <div id="printable" class="deck-container printable-body" style="display:none;">
   </div>
+
+  <div data-butter-exclude id="sd-editor-controls">
+    <button id="sd-editor-load-slides">Load Slide(s) from File(s)</button><br>
+    <button id="sd-editor-add-link">Add Link to SVG Text</button><br>
+    <button id="sd-editor-remove-link">Remove Link from SVG</button><br>
+    Import Slides: <input type="file" multiple id="import-selector" />
+  </div>
+
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="external/jquery/jquery-1.7.min.js"><\/script>')</script>
       

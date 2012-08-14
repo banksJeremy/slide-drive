@@ -405,6 +405,11 @@ addEventListener( "DOMContentLoaded", function() {
           initDeck();
         }
       });
+
+      document.getElementById( "sd-editor-add-link" ).addEventListener( "click", xlinkify );
+      document.getElementById( "sd-editor-remove-link" ).addEventListener( "click", unlink );
+      document.getElementById( "sd-editor-load-slides" ).addEventListener( "click", promptToImportFiles );
+      document.getElementById( "import-selector" ).addEventListener( "change", importTargetsSelected );
     } else {
       console.log( "Activating our keyboard shortcuts." );
 
@@ -504,9 +509,6 @@ addEventListener( "DOMContentLoaded", function() {
     return debounced;
   }
 
-  /* Verifies that the right type of files were dropped, otherwise displays an error.
-     If they have been then unbind the drop handlers, read the file and continue to handleDroppedSVG.
-  */
   function onDroppedFilesOnTrack ( files, track, time ) {
     var i, l, file, reader, slidesToPassOver = 0;
 
@@ -514,17 +516,20 @@ addEventListener( "DOMContentLoaded", function() {
       file = files[ i ];
       reader = new FileReader();
 
-      if ( file.type !== "image/svg+xml" && !file.name.match( /\.svg$/ ) ) {
-        continue;
+      if ( file.type === "image/svg+xml" || file.name.match( /\.svg$/i ) ) {
+        console.log( "Reading SVG file..." );
+        reader.readAsText(file, "UTF-8" );
+        reader.onloadend = onLoadedSVG;
+      } else if ( file.type === "text/html" || file.name.match( /\.html$/i ) ) {
+        console.log( "Reading HTML file..." );
+        reader.readAsText(file, "UTF-8" );
+        reader.onloadend = onLoadedHTML;
+      } else {
+        console.warning( "Ignoring file of unrecognized type and extension", file.type, file.name );
       }
-
-      console.log( "Reading SVG..." );
-
-      reader.readAsText(file, "UTF-8" );
-      reader.onloadend = onReaderLoaded;
     }
 
-    function onReaderLoaded() {
+    function onLoadedSVG() {
       if ( this.readyState !== FileReader.DONE ) {
         return;
       }
@@ -542,6 +547,39 @@ addEventListener( "DOMContentLoaded", function() {
 
       slidesToPassOver += newSlideCount;
     }
+
+    function onLoadedHTML() {
+      if ( this.readyState !== FileReader.DONE ) {
+        return;
+      }
+
+      var tmpContainer = document.createElement( "div" ),
+          slidesRoot,
+          newSlideCount;
+
+      tmpContainer.innerHTML = this.result;
+      slidesRoot = tmpContainer.querySelector( ".deck-container" );
+
+      newSlideCount = slidesRoot.querySelectorAll( ".slide" ).length;
+
+      handleDroppedHTML( slidesRoot, track, time + 1 * slidesToPassOver );
+
+      slidesToPassOver += newSlideCount;
+    }
+  }
+
+  // TODO consider the case that the HTML document only
+  // contains SVG slides. They should get the proper treatment.
+  // If you're importing an HTML file, it will already have time
+  // codes and all that. Perhaps it should be imported onto a
+  // new track.
+  // This is our "load" feature, right here.
+  // The only thing it would be missing is the original media sources.
+
+  function handleDroppedHTML ( root, track, start ) {
+    console.log( "Read HTML from file." );
+
+
   }
 
   /* Given the root of a loaded SVG element, proccess it and split into elements for each slide.
@@ -853,24 +891,6 @@ addEventListener( "DOMContentLoaded", function() {
     }
   }
 
-  /*
-    So... we want to be able to sync embedded videos to the master popcorn object.
-    Does adjusting currentTime count as seeking? I think not. Therefore it is impossible
-    to detect specific jumps, instead of regular playing, so we will have to sync.
-    
-    It does count as seeking!
-    So we just need to watch... play, pause, volumechange, seeked... and let's pause on seeking.
-    
-    None of these events are too frequent, so making it general, rather than optimizing it, is doable.
-  */
-  
-  // End will be the end of the last child slide of the current slide?
-  // Screwit we don't have subslides yet.
-  // Hmm... can you attach other handlers to the start and end events (are they events) of a track event?
-  // That would be the best solution... although we would still need some way to get a reference to
-  // the track event. If SlideButterOptions were initialized in inside the event's stuff, it could be done
-  // there. We could special-case re-instantiation in that context to update the existing object before
-  // returning it.
   function syncVideo( el ) {
     console.log("Setting up synced video.")
 
@@ -913,11 +933,11 @@ addEventListener( "DOMContentLoaded", function() {
     }
   }
 
-  window.xlinkify = function xlinkify() {
-    $( "body" ).on( "click", "svg text", linkifyElement );
+  function xlinkify() {
+    $( "body" ).on( "click", "svg text", linkifyElement ).addClass( "xlinkifying" );
 
     function linkifyElement() {
-      $( "body" ).off( "click", "svg text", linkifyElement );
+      $( "body" ).off( "click", "svg text", linkifyElement ).removeClass( "xlinkifying" );
 
       var href = prompt( "Please enter a URL to link to this text to." );
 
@@ -929,5 +949,24 @@ addEventListener( "DOMContentLoaded", function() {
         $( this ).wrap( link );
       }
     }
-  };
+  }
+
+  function unlink() {
+    $( "body" ).on( "click", "svg a", linkifyElement ).addClass( "xlinkifying" );
+
+    function linkifyElement() {
+      $( "body" ).off( "click", "svg a", linkifyElement ).removeClass( "xlinkifying" );
+
+      $( this ).replaceWith( $( this ).children() );
+
+    }
+  }
+
+  function importTargetsSelected( e ) {
+    e.target.files;
+  }
+
+  function promptToImportFiles() {
+    throw "NOT IMPLEMENTED";
+  }
 }, false );
