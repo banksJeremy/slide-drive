@@ -408,7 +408,6 @@ addEventListener( "DOMContentLoaded", function() {
 
       document.getElementById( "sd-editor-add-link" ).addEventListener( "click", xlinkify );
       document.getElementById( "sd-editor-remove-link" ).addEventListener( "click", unlink );
-      document.getElementById( "sd-editor-load-slides" ).addEventListener( "click", promptToImportFiles );
       document.getElementById( "import-selector" ).addEventListener( "change", importTargetsSelected );
     } else {
       console.log( "Activating our keyboard shortcuts." );
@@ -578,8 +577,26 @@ addEventListener( "DOMContentLoaded", function() {
 
   function handleDroppedHTML ( root, track, start ) {
     console.log( "Read HTML from file." );
+    var slides = root.querySelectorAll( ".slide" ),
+        i = 0,
+        l = slides.length;
 
+    var deckContainer = document.querySelector( ".deck-container" ),
+        popcornOptions;
 
+    for (; i < l; i++) {
+      popcornOptions = SlideButterOptions( slides[ i ] );
+      deckContainer.appendChild( slides[i] );
+
+      // cause it to be moved into the correct document order
+      popcornOptions.start = popcornOptions.start;
+      
+      track.addTrackEvent({
+        type: "slidedrive",
+        popcornOptions: popcornOptions
+      });
+    }
+    initDeck();
   }
 
   /* Given the root of a loaded SVG element, proccess it and split into elements for each slide.
@@ -963,10 +980,8 @@ addEventListener( "DOMContentLoaded", function() {
   }
 
   function importTargetsSelected( e ) {
-    e.target.files;
-  }
-
-  function promptToImportFiles() {
-    throw "NOT IMPLEMENTED";
+    if (e.target.files.length)
+      onDroppedFilesOnTrack( e.target.files, butter.media[0].addTrack(), 0);
+    this.value = "";
   }
 }, false );
