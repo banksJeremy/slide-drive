@@ -486,10 +486,10 @@ document.addEventListener( "DOMContentLoaded", function() {
 // This will be run automatically once, either after the DOM has loaded or
 // after .writeFonts() is first called. It may be called again safely, but
 // that shouldn't be neccessary.
-fontManager._reload = function() {
+fontManager._reload = function( styleEl ) {
   this._reloadCalled = true;
 
-  var styleEl = document.getElementById( "SVGHelper-fontManager-style" );
+  styleEl = styleEl || document.getElementById( "SVGHelper-fontManager-style" );
 
   if ( !styleEl ) {
     return this;

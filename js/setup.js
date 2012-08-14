@@ -55,6 +55,10 @@ addEventListener( "DOMContentLoaded", function() {
         set: function( start ) {
           _el.setAttribute( "data-popcorn-slideshow", start );
 
+          if ( !_el.parentNode ) {
+            throw new Error("Moving detached element E = ", window.E = _el);
+          }
+
           var successor = null,
               parent = _el.parentNode,
               siblings = parent.childNodes,
@@ -557,7 +561,7 @@ addEventListener( "DOMContentLoaded", function() {
           newSlideCount;
 
       tmpContainer.innerHTML = this.result;
-      slidesRoot = tmpContainer.querySelector( ".deck-container" );
+      slidesRoot = tmpContainer;
 
       newSlideCount = slidesRoot.querySelectorAll( ".slide" ).length;
 
@@ -581,6 +585,10 @@ addEventListener( "DOMContentLoaded", function() {
         i = 0,
         l = slides.length;
 
+    var oldStyle = root.querySelector( "#SVGHelper-fontManager-style" );
+    SVGHelper.fontManager._reload( oldStyle );
+    SVGHelper.fontManager.writeFonts();
+
     var deckContainer = document.querySelector( ".deck-container" ),
         popcornOptions;
 
@@ -590,7 +598,7 @@ addEventListener( "DOMContentLoaded", function() {
 
       // cause it to be moved into the correct document order
       popcornOptions.start = popcornOptions.start;
-      
+
       track.addTrackEvent({
         type: "slidedrive",
         popcornOptions: popcornOptions
