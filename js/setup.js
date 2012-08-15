@@ -959,10 +959,8 @@ addEventListener( "DOMContentLoaded", function() {
   }
 
   function xlinkify() {
-    $( "body" ).on( "click", "svg text", linkifyElement ).addClass( "xlinkifying" );
-
-    function linkifyElement() {
-      $( "body" ).off( "click", "svg text", linkifyElement ).removeClass( "xlinkifying" );
+    promptForSelection( "svg text", "SVG text to link", function( err, target ) {
+      if (err) return;
 
       var href = prompt( "Please enter a URL to link to this text to." );
 
@@ -971,25 +969,52 @@ addEventListener( "DOMContentLoaded", function() {
         link.setAttributeNS( NS_XLINK, "href", href );
         link.style.textDecoration = "underline";
 
-        $( this ).wrap( link );
+        $( target ).wrap( link );
       }
-    }
+    });
   }
 
   function unlink() {
-    $( "body" ).on( "click", "svg a", linkifyElement ).addClass( "xlinkifying" );
+    promptForSelection( "svg a", "SVG link to remove", function( err, target ) {
+      if (err) return;
 
-    function linkifyElement() {
-      $( "body" ).off( "click", "svg a", linkifyElement ).removeClass( "xlinkifying" );
-
-      $( this ).replaceWith( $( this ).children() );
-
-    }
+      $( target ).replaceWith( $( target ).children() );
+    });
   }
 
   function importTargetsSelected( e ) {
     if (e.target.files.length)
       onDroppedFilesOnTrack( e.target.files, butter.media[0].addTrack(), 0);
     this.value = "";
+  }
+
+  var activeSelecting = null;
+  function promptForSelection( selector, label, callback ) {
+    if ( activeSelecting ) {
+      callback( "Cancelled by new selection action." );
+      $(activeSelecting).removeClass("selectable-target").off("click", onClick);
+    }
+
+    activeSelecting = $(selector);
+
+    $(activeSelecting).addClass("selectable-target").click(onClick);
+    $("#selection-message").show().text( "Please select " + label );
+    $("#selection-cancel").show().find("button").on("click", onCancel);
+
+    function onClick() {
+      $("#selection-message").hide();
+      $(activeSelecting).removeClass("selectable-target").off("click", onClick);
+      $("#selection-cancel").hide().find("button").off("click", onCancel);
+      callback( null, this );
+      activeSelecting = null;
+    }
+
+    function onCancel() {
+      $("#selection-message").hide();
+      $(activeSelecting).removeClass("selectable-target").off("click", onClick);
+      $("#selection-cancel").hide().find("button").off("click", onCancel);
+      callback( "cancelled" );
+      activeSelecting = null;
+    }
   }
 }, false );

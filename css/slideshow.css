@@ -131,11 +131,20 @@ body {
   opacity: 1.0;
 }
 
+#selection-message {
+  text-align: center;
+  font-weight: bold;
+}
+
+#selection-cancel {
+  display: none;
+}
+
 #sd-editor-controls input[type=file] {
   color: transparent;
 }
 
-.xlinkifying svg text {
+.selectable-target {
   -moz-animation-duration: 0.25s;
   -webkit-animation-duration: 0.25s;
   -moz-animation-name: fade-to-0p5;
@@ -146,10 +155,11 @@ body {
   -webkit-animation-direction: alternate;
   -moz-animation-timing-function: ease-in-out;
   -webkit-animation-timing-function: ease-in-out;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.xlinkifying svg text:hover {
+.selectable-target:hover {
   text-decoration: underline;
 }
 
