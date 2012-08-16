@@ -31,17 +31,17 @@
         }
       },
       _setup: function( options ) {
-        options._slideButterOptions = SlideButterOptions( document.getElementById( options.slideId ) );
+        options._slideButterOptions = SD.SlideButterOptions( document.getElementById( options.slideId ) );
       }, 
       start: function( event, options ) {
-        if ( options._slideButterOptions._onstart() === false ) {
+        if ( (options._slideButterOptions || options)._onstart() === false ) {
           return;
         }
 
         $.deck( "go", options.slideId );
       },
       end: function( event, options ) {
-        if ( options._slideButterOptions._onend() === false ) {
+        if ( (options._slideButterOptions || options)._onend() === false ) {
           return;
         }
 

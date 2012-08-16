@@ -219,13 +219,24 @@ SVGHelper.prototype.fixTextSelection = function() {
   var i, l, el, textEls = this.svgEl.querySelectorAll( "text" );
 
   this._addViewportLocatorsFor( textEls );
-  
+
   for ( i = 0, l = textEls.length; i < l; ++i ) {
     el = textEls[ i ];
 
-    var bbox = this._getProportionalBBoxOf( el );
+    var bbox = this._getProportionalBBoxOf( el ),
+        marker;
 
-    var marker = document.createElement( "span" );
+    console.log("PARENT", el.parentNode.nodeName)
+
+    if ( el.parentNode.nodeName.match( /^a$/i ) ) {
+      marker = document.createElement( 'a' );
+      marker.href = el.parentNode.getAttributeNS( NS_XLINK, "href" );
+      marker.style.borderBottom = "1px solid black";
+      marker.style.cursor = "pointer";
+    } else {
+      marker = document.createElement( "span" );
+    }
+
     marker.textContent = el.textContent;
 
     marker.classList.add( "SVGHelper-selectable-text-overlay" );
