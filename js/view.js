@@ -225,9 +225,11 @@ SD.onKeyDown = function( e ) {
     if( !showingPrintable ) {
       printableElement.style.display = "";
       document.getElementById( "main" ).style.display = "none";
+      SD.svgsRequireRescaling();
     } else {
       printableElement.style.display = "none";
       document.getElementById( "main" ).style.display = "";
+      SD.svgsRequireRescaling();
     }
     showingPrintable = !showingPrintable;
   }
@@ -424,9 +426,14 @@ SD.SlideButterOptions.prototype = {
 
 // Scale all SVGs 200ms after the last call
 SD.svgsRequireRescaling = SD.debounce(function() {
-  var svgs = document.querySelectorAll("svg"), i, l;
+  var svgs = document.querySelectorAll("#main svg"), i, l;
   for ( i = 0, l = svgs.length; i < l; ++i ) {
     SVGHelper( svgs[ i ] ).fitIn( document.querySelector( ".deck-container" ) );
+  }
+
+  var svgs = document.querySelectorAll(".printable-container svg"), i, l;
+  for ( i = 0, l = svgs.length; i < l; ++i ) {
+    SVGHelper( svgs[ i ] ).fitIn( $(svgs[i]).closest(".printable-slide")[0] );
   }
 }, 200);
 
@@ -448,7 +455,7 @@ SD.initPrintableElement = function() {
       bodyChildren = document.getElementById( "main" ).getElementsByTagName( "section" );
 
   for( var i = 0, l = bodyChildren.length; i < l; i++ ) {
-    var slideContainer = document.createElement("slideContainer"),
+    var slideContainer = document.createElement("div"),
         slide = document.createElement( "div" ),
         transcript = document.createElement( "div" ),
         gotoLink = document.createElement( "a" );
@@ -602,6 +609,6 @@ SD.syncVideo = function( el ) {
   function onSeeked() {
     elPopcorn.currentTime( SD.popcorn.currentTime() - slideOptions.start );
   }
-}
+};
 
 }())

@@ -8,6 +8,7 @@ var NS_SVG = "http://www.w3.org/2000/svg",
 var SD = __sd;
 SD.editing = true;
 SD.butter = null;
+SD.transcriptEditor = null;
 
 // Modifies a clone of the document used to export from Butter as HTML.
 SD.onButterPageGetHTML = function ( e ) {
@@ -301,6 +302,7 @@ SD.initEditorEvents = function() {
   document.getElementById( "sd-editor-add-link" ).addEventListener( "click", SD.promptAddSvgTextLink );
   document.getElementById( "sd-editor-remove-link" ).addEventListener( "click", SD.promptRemoveSvgLink );
   document.getElementById( "import-selector" ).addEventListener( "change", SD.onFilesSelected );
+  document.getElementById( "activate-transcript-editor" ).addEventListener( "click", SD.showTranscriptEditor );
 }
 
 SD.promptAddSvgTextLink = function() {
@@ -364,5 +366,101 @@ SD.promptForSelection = function ( selector, label, callback ) {
     return false;
   }
 }
+
+SD.showTranscriptEditor = function() {
+  // We actually re-initialize each time, because otherwise changes won't be reflected yet.
+  SD.transcriptEditor = SD.initTranscriptEditor();
+  SD.transcriptEditor.style.display = "";
+  document.getElementById( "main" ).style.display = "none";
+  SD.svgsRequireRescaling();
+}
+
+// The transcript editor is very similar to the printable view, but with
+// editable text whose changes are saved.
+SD.initTranscriptEditor = function() {
+  var body = document.getElementById( "transcript-editor" ),
+      bodyChildren = document.getElementById( "main" ).getElementsByTagName( "section" );
+
+  $(body).empty();
+
+  var closeButton = document.createElement( "button" );
+  closeButton.innerText = "Close";
+  body.appendChild( closeButton );
+  closeButton.addEventListener( "click", function() {
+    SD.transcriptEditor.style.display = "none";
+    document.getElementById( "main" ).style.display = "";
+    SD.svgsRequireRescaling();
+  });
+
+  for( var i = 0, l = bodyChildren.length; i < l; i++ ) {
+    var slideContainer = document.createElement("div"),
+        slide = document.createElement( "div" ),
+        transcript = document.createElement( "textarea" );
+
+    slideContainer.className = "printable-container";
+
+    slide.className = "printable-slide";
+    transcript.className = "printable-transcript";
+
+    var reflectChanges = (function(transcript, originalSlide) {
+      return SD.debounce(function() {
+        console.log( "Saving transcript changes." )
+        SD.SlideButterOptions( originalSlide ).transcriptSource = transcript.value;
+      }, 250);
+    }(transcript, bodyChildren[ i ]));
+
+    transcript.addEventListener( "keyup", reflectChanges );
+
+    slide.appendChild( bodyChildren[ i ].cloneNode(true) );
+
+    slide.children[ 0 ].className = "slide deck-child-current";
+
+    if( slide.children[ 0 ] && slide.children[ 0 ].children[ 0 ] ) {
+
+      var trans = slide.children[ 0 ].querySelectorAll(".transcript"),
+          slides = slide.children[ 0 ].querySelectorAll(".slide"),
+          innerTrans = "";
+
+      if( slides.length > 0 ) {
+        for( var j = 0, k = slides.length; j < k; j++ ) {
+          slides[ j ].className = "slide deck-current";
+        }
+      }
+      if( trans.length > 0 ) {
+        for( var a = 0, s = trans.length; a < s; a++ ) {
+         innerTrans += trans[ a ].innerHTML + "\n";
+        }
+        transcript.innerText = innerTrans;
+      }
+    }
+
+    slideContainer.appendChild( slide );
+    slideContainer.appendChild( transcript );
+    body.appendChild( slideContainer );
+    (function( sl, tr ) {
+      function resize() {
+        var rect = sl.getBoundingClientRect();
+        if( rect.height > 0 ) {
+          tr.style.height = rect.height + "px";
+        } else {
+          setTimeout( resize, 100 );
+        }
+      }
+      resize();
+    })( slide, transcript );
+  }
+
+  closeButton = document.createElement( "button" );
+  closeButton.innerText = "Close";
+  body.appendChild( closeButton );
+  closeButton.addEventListener( "click", function() {
+    SD.transcriptEditor.style.display = "none";
+    document.getElementById( "main" ).style.display = "";
+    SD.svgsRequireRescaling();
+  });
+
+  return document.getElementById("transcript-editor");
+};
+
 
 }());
