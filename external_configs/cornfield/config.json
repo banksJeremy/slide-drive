@@ -6,18 +6,23 @@
   "logger" : {
     "format" : "dev"
   },
-  "session" : {
-    "secret": "thisisareallyreallylongsecrettoencryptcookies"
+  "staticMiddleware" : {
+    "maxAge" : "0"
   },
-  "dirs": {
+  "session" : {
+    "secret": "thisisareallyreallylongsecrettoencryptcookies",
+    "maxAge": "3600000"
+  },
+  "dirs" : {
     "wwwRoot": ".",
-    "templates": "external/butter/templates",
+    "templates": "",
     "publish": "view",
     "publishPrefix": "http://localhost:8888/view"
   },
-  "templates": {
-    "default-butter-test": {
-      "../external/popcorn-js/": "http://localhost:8888/external/butter/external/popcorn-js/"
-    }
-  }
+  "templates" : {
+    "slidedrive": "external_configs/butter/config.json"
+  },
+  "exportAssets": [
+    
+  ]
 }

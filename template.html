@@ -21,7 +21,6 @@
 
   <!-- Custom CSS just for this page -->
   <link rel="stylesheet" href="/css/slideshow.css">
-  <link rel="stylesheet" href="/external/butter/css/butter.ui.css" data-butter-exclude />
 	
   <script src="/external/modernizr/modernizr.custom.js"></script>
   <!-- project-container class determines the size of the container.
@@ -29,14 +28,31 @@
        deck-container will override height set by deckjs to whatever you desire
   -->
   
-  <script src="https://browserid.org/include.js" type="text/javascript" data-butter-exclude></script>
-  <script src="/external/butter/src/butter.js" data-butter-exclude /></script>
-  
   <style data-butter-exclude>
-    .deck-container {
-/*      top: 35px;*/
+    #main, .content-div {
+      float: left;
     }
-    
+    .content-div {
+      min-width: 200px;
+      min-height: 200px;
+      border: 3px solid #000;
+      margin: 5px;
+    }
+    .container-div {
+      float: left;
+      text-align: center;
+      font-family: helvetica;
+      font-style: bold;
+    }
+    #main {
+      min-width: 300px;
+      min-height: 200px;
+    }
+    video {
+      position: relative;
+      top: 30px;
+    }
+
     .butter-media-properties {
       top: 35px !important;
     }
@@ -73,7 +89,7 @@
     </div>
 
     <div class="controls-and-transcript">
-      <audio id="audio" data-butter="media" controls preload="auto" style="display:none;width:100%;">
+      <audio id="audio" data-butter="media" controls preload="auto" style="display:none;width:100%;"  src="/examples/demo-audio.mp3">
         <source src="/examples/demo-audio.mp3" />
         <source src="/examples/demo-audio.ogg" />
       </audio>
@@ -110,10 +126,20 @@
       <script src="/external/deckjs/extensions/status/deck.status.js"></script>
       <script src="/external/deckjs/extensions/navigation/deck.navigation.js"></script>
 
+      <script>
+        $.deck([]);
+        // initialize Deck.js with empty presentation so that its methods will no-op instead of error
+      </script>
+      
+      <script src="https://login.persona.org/include.js" type="text/javascript" data-butter-exclude></script>
+      <script src="/external/butter/src/butter.js" data-butter-exclude /></script>
+
       <!-- Specific to this page -->
       <script src="/js/svg-helper.js"></script>
       <script src="/js/style-mapper.js"></script>
       <script src="/js/view.js"></script>
       <script data-butter-exclude src="/js/edit.js"></script>
+
+
   </body>
 </html>

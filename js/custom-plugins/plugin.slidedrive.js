@@ -31,7 +31,7 @@
         }
       },
       _setup: function( options ) {
-        options._slideButterOptions = SD.SlideButterOptions( document.getElementById( options.slideId ) );
+        options._slideButterOptions = __sd.SlideButterOptions( document.getElementById( options.slideId ) );
       }, 
       start: function( event, options ) {
         if ( (options._slideButterOptions || options)._onstart() === false ) {

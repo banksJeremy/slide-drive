@@ -24,12 +24,13 @@ SD.init = function() {
   }
 
   if ( SD.editing ) {
-    console.log( "Loading butter" );
+    console.log( "Loading butter." );
     Butter({
       config: "/external_configs/butter/config.json",
       ready: SD._init_withButterIfEditing
     });
   } else {
+    console.log( "Not loading butter." )
     SD._init_withButterIfEditing();
   }
 }
@@ -59,6 +60,7 @@ SD.debounce = function( f, interval ) {
 
 SD._init_withButterIfEditing = function( butter ) {
   if ( SD.editing ) { 
+    console.log( "Butter loaded" );
     SD.butter = butter;
   }
 
@@ -80,8 +82,8 @@ SD._init_withButterIfEditing = function( butter ) {
     console.log( "SD.popcorn.readyState() >= 2" );
 
     if ( SD.editing ) {
-      console.log( "waiting for SD.butter.media[ 0 ].onReady()." );
-      SD.butter.media[ 0 ].onReady(function() {
+      console.log( "waiting for SD.butter.currentMedia.onReady()." );
+      SD.butter.currentMedia.onReady(function() {
         SD._init_afterMediaReady();
       });
     } else {
@@ -105,14 +107,14 @@ SD._init_afterMediaReady = function() {
     SD.butter.page.listen( "getHTML", SD.onButterPageGetHTML);
 
     // Bind file drop handling to each Butter track.
-    SD.butter.media[ 0 ].listen( "trackadded" , function( e ) {
+    SD.butter.currentMedia.listen( "trackadded" , function( e ) {
       var track = e.data;
       track.view.listen( "filesdropped", function( e ) {
         SD.onButterTrackFilesDropped( e.data.files, e.data.track, e.data.start );
       });
     });
 
-    butterTrack = SD.butter.media[ 0 ].addTrack( "Slides" );
+    butterTrack = SD.butter.currentMedia.addTrack( "Slides" );
   }
 
   for ( var i = 0; i < slidesEls.length; ++i ) {
@@ -146,7 +148,7 @@ SD._init_afterMediaReady = function() {
   $.deck("next");
   $.deck("prev");
 
-  [].forEach.call( document.querySelectorAll( "video" ), SD.syncVideo );
+  [].forEach.call( document.querySelectorAll( ".slide video" ), SD.syncVideo );
 
   if ( location.search.match( /(^\?|&)autoplay=1(&|$)/ ) ) {
     SD.popcorn.play();

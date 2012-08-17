@@ -286,7 +286,7 @@ SD.initEditorEvents = function() {
     $( document ).off( toRemove[ i ] );
   }
 
-  SD.butter.media[ 0 ].listen( "trackeventremoved", function( e ) {
+  SD.butter.currentMedia.listen( "trackeventremoved", function( e ) {
     if ( e.data.type === "slidedrive" ) {
       var slideId = e.data.popcornOptions.slideId;
       var el = document.getElementById( slideId );
