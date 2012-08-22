@@ -9,7 +9,7 @@ Getting Started
 
 (This currently clones hundreds of megs of unnecessary or redundant data.)
 
-    $ git clone https://github.com/dseif/slide-drive.git slide-drive
+    $ git clone https://github.com/jeremybanks/slide-drive.git slide-drive
     $ cd slide-drive
     $ git submodule update --init --recursive
 
@@ -51,7 +51,7 @@ Some basic functionality doesn't require [MongoDB][mongodb], but it is required 
 - Slide Drive template for Butter: <http://localhost:8888/template.html>
 - Tests: <http://localhost:8888/test/>
 
- [slide-drive]: https://github.com/dseif/slide-drive
+ [slide-drive]: https://github.com/jeremybanks/slide-drive
  [deck.js]: http://imakewebthings.com/deck.js/
  [node.js]: http://nodejs.org/
  [nodeenv]: http://ekalinin.github.com/nodeenv/
@@ -69,5 +69,5 @@ Keyboard commands
 Contributors
 ------------
 
-* David Seifried
+* (David Seifried)[http://github.com/dseif)
 * [Jeremy Banks](http://github.com/jeremybanks)
