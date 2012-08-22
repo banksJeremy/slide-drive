@@ -378,81 +378,54 @@ SD.showTranscriptEditor = function() {
 // The transcript editor is very similar to the printable view, but with
 // editable text whose changes are saved.
 SD.initTranscriptEditor = function() {
-  var body = document.getElementById( "transcript-editor" ),
-      bodyChildren = document.getElementById( "main" ).getElementsByTagName( "section" );
+  var editor = document.getElementById( "transcript-editor" ),
+      slides = document.getElementById( "main" ).getElementsByTagName( "section" );
 
-  $(body).empty();
+  editor.innerHTML = "<h2>Transcript Editor</h2>"
+                   + "<table></table>";
 
-  var closeButton = document.createElement( "button" );
-  closeButton.innerText = "Close";
-  body.appendChild( closeButton );
-  closeButton.addEventListener( "click", function() {
-    SD.transcriptEditor.style.display = "none";
+  var slideTable = editor.querySelector( "table" );
+
+  $("button", editor).click(function() {
+    editor.style.display = "none";
     document.getElementById( "main" ).style.display = "";
     SD.svgsRequireRescaling();
   });
 
-  for( var i = 0, l = bodyChildren.length; i < l; i++ ) {
-    var slideContainer = document.createElement("div"),
-        slide = document.createElement( "div" ),
-        transcript = document.createElement( "textarea" );
+  for ( var i = 0, l = slides.length; i < l; i++ ) {
+    var el = slides[ i ],
+        row = document.createElement( "tr" ),
+        slideCell = document.createElement( "td" ),
+        transcriptCell = document.createElement( "td" ),
+        transcriptText = document.createElement( "textarea" ),
+        applyChanges = (function(transcriptText, originalSlide) {
+          return SD.debounce(function() {
+            console.log( "Saving transcript changes." )
+            SD.SlideButterOptions( originalSlide ).transcriptSource = transcriptText.value;
+          }, 250);
+        }(transcriptText, slides[ i ]));
 
-    slideContainer.className = "printable-container";
+    el.children[ 0 ].className = "slide deck-child-current";
 
-    slide.className = "printable-slide";
-    transcript.className = "printable-transcript";
+    var svgWrapper = el.querySelector(".SVGHelper-wrapper");
+    if (svgWrapper) svgWrapper.style.width = "100%";
 
-    var reflectChanges = (function(transcript, originalSlide) {
-      return SD.debounce(function() {
-        console.log( "Saving transcript changes." )
-        SD.SlideButterOptions( originalSlide ).transcriptSource = transcript.value;
-      }, 250);
-    }(transcript, bodyChildren[ i ]));
+    slideCell.appendChild( el.cloneNode( true ) );
+    transcriptCell.appendChild( transcriptText );
 
-    transcript.addEventListener( "keyup", reflectChanges );
+    row.appendChild( slideCell );
+    row.appendChild( transcriptCell );
 
-    slide.appendChild( bodyChildren[ i ].cloneNode(true) );
+    slideTable.appendChild( row );
 
-    slide.children[ 0 ].className = "slide deck-child-current";
-
-    if( slide.children[ 0 ] && slide.children[ 0 ].children[ 0 ] ) {
-
-      var trans = slide.children[ 0 ].querySelectorAll(".transcript"),
-          slides = slide.children[ 0 ].querySelectorAll(".slide"),
-          innerTrans = "";
-
-      if( slides.length > 0 ) {
-        for( var j = 0, k = slides.length; j < k; j++ ) {
-          slides[ j ].className = "slide deck-current";
-        }
-      }
-      if( trans.length > 0 ) {
-        for( var a = 0, s = trans.length; a < s; a++ ) {
-         innerTrans += trans[ a ].innerHTML + "\n";
-        }
-        transcript.innerText = innerTrans;
-      }
-    }
-
-    slideContainer.appendChild( slide );
-    slideContainer.appendChild( transcript );
-    body.appendChild( slideContainer );
-    (function( sl, tr ) {
-      function resize() {
-        var rect = sl.getBoundingClientRect();
-        if( rect.height > 0 ) {
-          tr.style.height = rect.height + "px";
-        } else {
-          setTimeout( resize, 100 );
-        }
-      }
-      resize();
-    })( slide, transcript );
+    transcriptText.addEventListener( "keyup", applyChanges );
+    transcriptText.addEventListener( "change", applyChanges );
   }
 
-  closeButton = document.createElement( "button" );
+  var closeButton = document.createElement( "button" );
   closeButton.innerText = "Close";
-  body.appendChild( closeButton );
+  editor.appendChild( closeButton );
+
   closeButton.addEventListener( "click", function() {
     SD.transcriptEditor.style.display = "none";
     document.getElementById( "main" ).style.display = "";

@@ -89,6 +89,25 @@ body {
   border-width: 1px !important;
   border-color: black !important;
   padding: 5px;
+  padding-bottom: 100%;
+}
+
+#transcript-editor table td {
+  width: 45%;
+  border-bottom: 1px solid black;
+  padding-bottom: .5em;
+  margin-bottom: .5em;
+  border-collapse: collapse;
+}
+
+#transcript-editor table {
+  width: 100%;
+}
+
+#transcript-editor textarea {
+  width: 100%;
+  height: 8em;
+  margin: .5em;
 }
 
 #transcript-editor, #printable {
